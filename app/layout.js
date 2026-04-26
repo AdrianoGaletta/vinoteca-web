@@ -15,8 +15,11 @@ const dmSans = DM_Sans({
 })
 
 export const metadata = {
-  title: 'Vinoteca Boutique | Vinos de Autor',
-  description: 'Selección premium de vinos argentinos de autor',
+  title: 'Cava del Plata | Vinoteca Boutique',
+  description: 'Selección argentina de vinos premium',
+  icons: {
+    icon: '/images/logo-favicon.png',
+  },
 }
 
 export default function RootLayout({ children }) {
@@ -25,7 +28,7 @@ export default function RootLayout({ children }) {
       <body className={`${playfair.variable} ${dmSans.variable}`}>
         <CartProvider>
           <Navbar />
-          <main>{children}</main>
+          <main style={{ paddingTop: 0, marginTop: 0, display: 'block' }}>{children}</main>
           <Footer />
         </CartProvider>
       </body>

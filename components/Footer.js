@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 export default function Footer() {
   return (
     <footer role="contentinfo" style={{
@@ -10,15 +12,13 @@ export default function Footer() {
     }}>
 
       <div>
-        <h3 style={{
-          fontFamily: 'var(--font-display)',
-          color: 'var(--dorado)',
-          fontSize: '1.2rem',
-          marginBottom: '1rem',
-          letterSpacing: '0.1em',
-        }}>
-          VINOTECA
-        </h3>
+        <Image
+          src="/images/logo-footer.png"
+          alt="Cava del Plata"
+          width={120}
+          height={120}
+          style={{ objectFit: 'contain' }}
+        />
         <p style={{
           color: 'var(--crema)',
           fontSize: '0.85rem',

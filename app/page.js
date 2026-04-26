@@ -3,64 +3,75 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import vinos from '@/data/vinos'
+import Image from 'next/image'
 
 export default function Home() {
   const [destacados, setDestacados] = useState([])
 
   useEffect(() => {
-    // Simulamos un fetch tomando los primeros 3 vinos destacados
     const top = vinos.slice(0, 3)
     setDestacados(top)
   }, [])
 
   return (
     <>
+      
       {/* HERO */}
       <section aria-labelledby="hero-titulo" style={{
-        minHeight: '90vh',
+        height: 'calc(100vh - 60px)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
         textAlign: 'center',
-        padding: '4rem 2rem',
+        padding: '1rem 2rem',
         borderBottom: '1px solid var(--dorado)',
         background: 'radial-gradient(ellipse at center, #1a1a1a 0%, #0a0a0a 70%)',
+
       }}>
-        <p style={{
+        <Image
+          className="fade-in"
+          src="/images/logo-hero.png"
+          alt="Cava del Plata"
+          width={500}
+          height={370}
+          style={{ objectFit: 'contain', marginBottom: '1rem' }}
+          priority
+        />
+        <p className="fade-in delay-1" style={{
           color: 'var(--dorado)',
           fontSize: '0.8rem',
           letterSpacing: '0.3em',
           textTransform: 'uppercase',
-          marginBottom: '1.5rem',
+          marginBottom: '1rem',
         }}>
           Selección Premium · Argentina
         </p>
 
-        <h1 id="hero-titulo" style={{
+        <h1 className="fade-in-up delay-2" id="hero-titulo" style={{
           fontFamily: 'var(--font-display)',
-          fontSize: 'clamp(2.5rem, 8vw, 6rem)',
+          fontSize: 'clamp(1.8rem, 5vw, 3.5rem)',
           color: 'var(--crema)',
           lineHeight: '1.1',
-          marginBottom: '1.5rem',
+          marginBottom: '1rem',
           maxWidth: '800px',
         }}>
           Vinos que cuentan una historia
         </h1>
 
-        <p style={{
+        <p className="fade-in-up delay-3" style={{
           color: 'var(--crema)',
           opacity: 0.7,
-          fontSize: '1.1rem',
+          fontSize: '1rem',
           maxWidth: '500px',
           lineHeight: '1.7',
-          marginBottom: '3rem',
+          marginBottom: '1rem',
         }}>
           Boutique de vinos de autor seleccionados por sommeliers. 
           Cada botella es una experiencia única.
         </p>
 
-        <Link href="/catalogo" style={{
+        <Link className="btn-hover fade-in delay-4" href="/catalogo" style={{
           backgroundColor: 'var(--dorado)',
           color: 'var(--negro)',
           padding: '1rem 2.5rem',
@@ -69,7 +80,6 @@ export default function Home() {
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
           fontWeight: '600',
-          transition: 'opacity 0.2s',
         }}>
           Ver Catálogo
         </Link>
@@ -107,14 +117,13 @@ export default function Home() {
           gap: '2rem',
         }}>
           {destacados.map(vino => (
-            <article key={vino.id} aria-label={vino.nombre} style={{
+            <article className="card-hover" key={vino.id} aria-label={vino.nombre} style={{
               backgroundColor: 'var(--gris)',
               border: '1px solid var(--gris-claro)',
               padding: '2rem',
               display: 'flex',
               flexDirection: 'column',
               gap: '0.75rem',
-              transition: 'border-color 0.2s',
             }}>
               <p style={{
                 color: 'var(--dorado)',
@@ -147,7 +156,7 @@ export default function Home() {
               }}>
                 ${vino.precio.toLocaleString('es-AR')}
               </p>
-              <Link href={`/vino/${vino.id}`} style={{
+              <Link className="btn-hover" href={`/vino/${vino.id}`} style={{
                 border: '1px solid var(--dorado)',
                 color: 'var(--dorado)',
                 padding: '0.6rem 1rem',
