@@ -17,17 +17,19 @@ export default function Home() {
     <>
       
       {/* HERO */}
-      <section aria-labelledby="hero-titulo" style={{
-        height: 'calc(100vh - 60px)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        textAlign: 'center',
-        padding: '1rem 2rem',
-        borderBottom: '1px solid var(--dorado)',
-        background: 'radial-gradient(ellipse at center, #1a1a1a 0%, #0a0a0a 70%)',
-
+   <section aria-labelledby="hero-titulo" style={{
+      height: 'calc(100vh - 60px)',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      textAlign: 'center',
+      padding: '1rem 2rem',
+      borderBottom: '1px solid var(--dorado)',
+      backgroundImage: 'linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.85)), url(/images/hero-bg.jpg)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
       }}>
         <Image
           className="fade-in"
