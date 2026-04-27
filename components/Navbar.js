@@ -14,7 +14,7 @@ export default function Navbar() {
       zIndex: 100,
       backgroundColor: 'rgba(10, 10, 10, 0.95)',
       borderBottom: '1px solid var(--dorado)',
-      padding: '0.6rem 2rem',
+      padding: '0.4rem 2rem',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -25,7 +25,7 @@ export default function Navbar() {
         <Image
           src="/images/logo-navbar.png"
           alt="Cava del Plata"
-          width={220}
+          width={180}
           height={45}
           style={{ objectFit: 'contain' }}
           priority

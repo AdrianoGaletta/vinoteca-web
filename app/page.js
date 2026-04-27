@@ -37,26 +37,18 @@ export default function Home() {
           alt="Cava del Plata"
           width={500}
           height={370}
-          style={{ objectFit: 'contain', marginBottom: '1rem' }}
+          style={{ objectFit: 'contain', marginBottom: '0rem' }}
           priority
         />
-        <p className="fade-in delay-1" style={{
-          color: 'var(--dorado)',
-          fontSize: '0.8rem',
-          letterSpacing: '0.3em',
-          textTransform: 'uppercase',
-          marginBottom: '1rem',
-        }}>
-          Selección Premium · Argentina
-        </p>
 
         <h1 className="fade-in-up delay-2" id="hero-titulo" style={{
           fontFamily: 'var(--font-display)',
-          fontSize: 'clamp(1.8rem, 5vw, 3.5rem)',
+          fontSize: 'clamp(2.5rem, 7vw, 5.5rem)',
           color: 'var(--crema)',
-          lineHeight: '1.1',
+          lineHeight: '1.05',
           marginBottom: '1rem',
-          maxWidth: '800px',
+          maxWidth: '900px',
+          letterSpacing: '-0.02em',
         }}>
           Vinos que cuentan una historia
         </h1>
@@ -87,6 +79,71 @@ export default function Home() {
         </Link>
       </section>
 
+      {/* SECCIÓN EDITORIAL */}
+      <section aria-label="Editorial" style={{
+        position: 'relative',
+        height: '500px',
+        overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <Image
+          src="/images/editorial-bg.jpg"
+          alt="Bodega Cava del Plata"
+          fill
+          style={{ objectFit: 'cover', objectPosition: 'center' }}
+        />
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9))',
+        }} />
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          textAlign: 'center',
+          padding: '2rem',
+          maxWidth: '700px',
+        }}>
+          <p style={{
+            color: 'var(--dorado)',
+            fontSize: '0.75rem',
+            letterSpacing: '0.4em',
+            textTransform: 'uppercase',
+            marginBottom: '1.5rem',
+          }}>
+            Nuestra filosofía
+          </p>
+          <h2 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(2rem, 4vw, 3.5rem)',
+            color: 'var(--crema)',
+            lineHeight: '1.2',
+            marginBottom: '1.5rem',
+          }}>
+            Cada botella es el resultado de años de dedicación
+          </h2>
+          <Link href="/nosotros" style={{
+            color: 'var(--dorado)',
+            fontSize: '0.8rem',
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            borderBottom: '1px solid var(--dorado)',
+            paddingBottom: '0.25rem',
+          }}>
+            Conocé nuestra historia
+          </Link>
+        </div>
+      </section>
+      
+      {/* DEGRADADO DE TRANSICIÓN */}
+      <div style={{
+        height: '120px',
+        background: 'linear-gradient(to bottom, #1a1a1a, var(--negro))',
+        marginTop: '-1px',
+      }} />
+      
       {/* DESTACADOS */}
       <section aria-labelledby="destacados-titulo" style={{
         padding: '5rem 2rem',
@@ -102,6 +159,18 @@ export default function Home() {
         }}>
           Destacados de la semana
         </h2>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1rem',
+          margin: '0.75rem auto 0.5rem',
+          maxWidth: '300px',
+        }}>
+          <div style={{ height: '1px', flex: 1, backgroundColor: 'var(--dorado)', opacity: 0.5 }} />
+          <span style={{ color: 'var(--dorado)', fontSize: '0.8rem' }}>✦</span>
+          <div style={{ height: '1px', flex: 1, backgroundColor: 'var(--dorado)', opacity: 0.5 }} />
+        </div>
         <p style={{
           textAlign: 'center',
           color: 'var(--crema)',

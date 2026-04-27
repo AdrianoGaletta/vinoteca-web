@@ -25,6 +25,18 @@ export default function Catalogo() {
         }}>
           Catálogo
         </h1>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1rem',
+          margin: '1rem auto',
+          maxWidth: '300px',
+        }}>
+          <div style={{ height: '1px', flex: 1, backgroundColor: 'var(--dorado)', opacity: 0.5 }} />
+          <span style={{ color: 'var(--dorado)', fontSize: '0.8rem' }}>✦</span>
+          <div style={{ height: '1px', flex: 1, backgroundColor: 'var(--dorado)', opacity: 0.5 }} />
+        </div>
         <p style={{
           color: 'var(--crema)',
           opacity: 0.6,
