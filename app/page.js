@@ -127,6 +127,22 @@ export default function Home() {
               flexDirection: 'column',
               gap: '0.75rem',
             }}>
+              <div style={{
+                width: '100%',
+                height: '250px',
+                position: 'relative',
+                backgroundColor: '#111111',
+                borderBottom: '1px solid var(--dorado)',
+                marginBottom: '0.5rem',
+              }}>
+                <Image
+                  src={vino.imagen}
+                  alt={vino.nombre}
+                  fill
+                  style={{ objectFit: 'contain', padding: '0.5rem' }}
+                />
+              </div>
+
               <p style={{
                 color: 'var(--dorado)',
                 fontSize: '0.75rem',
