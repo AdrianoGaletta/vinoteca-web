@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import vinos from '@/data/vinos'
 import { useCart } from '@/components/CartContext'
+import Image from 'next/image'
 
 export default function DetalleVino() {
   const { id } = useParams()
@@ -65,17 +66,16 @@ export default function DetalleVino() {
           backgroundColor: 'var(--gris)',
           border: '1px solid var(--gris-claro)',
           aspectRatio: '3/4',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          position: 'relative',
+          overflow: 'hidden',
         }}>
-          <span style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '4rem',
-            opacity: 0.2,
-          }}>
-            🍷
-          </span>
+          <Image
+            src={vino.imagen}
+            alt={vino.nombre}
+            fill
+            style={{ objectFit: 'contain' }}
+            priority
+          />
         </div>
 
         {/* INFO */}

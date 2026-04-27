@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useCart } from './CartContext'
 import { useState } from 'react'
+import Image from 'next/image'
 
 export default function ProductCard({ vino }) {
   const { agregarAlCarrito } = useCart()
@@ -18,6 +19,7 @@ export default function ProductCard({ vino }) {
     <article
       role="listitem"
       aria-label={vino.nombre}
+      className="card-hover"
       style={{
         backgroundColor: 'var(--gris)',
         border: '1px solid var(--gris-claro)',
@@ -28,6 +30,22 @@ export default function ProductCard({ vino }) {
         transition: 'border-color 0.2s',
       }}
     >
+      <div style={{
+        width: '100%',
+        height: '320px',
+        position: 'relative',
+        backgroundColor: '#111111',
+        marginBottom: '0.5rem',
+        borderBottom: '1px solid var(--dorado)',
+      }}>
+        <Image
+          src={vino.imagen}
+          alt={vino.nombre}
+          fill
+          style={{ objectFit: 'contain' }}
+        />
+      </div>
+
       <p style={{
         color: 'var(--dorado)',
         fontSize: '0.75rem',

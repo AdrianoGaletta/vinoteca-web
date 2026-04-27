@@ -8,7 +8,7 @@ const vinos = [
     region: "Mendoza",
     precio: 8500,
     descripcion: "Vino de autor con notas de frutos rojos maduros, especias y un final largo y elegante. Elaborado con uvas de viñedos de alta altura.",
-    imagen: "/images/malbec1.jpg"
+    imagen: "/images/vino-1.jpg"
   },
   {
     id: 2,
@@ -19,7 +19,7 @@ const vinos = [
     region: "Gualtallary",
     precio: 12000,
     descripcion: "Chardonnay de viñedo único a 1.500 metros de altura. Complejo, mineral y fresco con notas de manzana verde y manteca tostada.",
-    imagen: "/images/chardonnay1.jpg"
+    imagen: "/images/vino-2.jpg"
   },
   {
     id: 3,
@@ -30,7 +30,7 @@ const vinos = [
     region: "Uco Valley",
     precio: 9200,
     descripcion: "Expresión pura del Cabernet Franc mendocino. Especiado, con taninos sedosos y una acidez vibrante que lo hace único.",
-    imagen: "/images/cabernet1.jpg"
+    imagen: "/images/vino-3.jpg"
   },
   {
     id: 4,
@@ -41,7 +41,7 @@ const vinos = [
     region: "Vista Flores",
     precio: 7800,
     descripcion: "Blend de autor creado por el legendario enólogo Michel Rolland. Potente, estructurado y de gran personalidad.",
-    imagen: "/images/blend1.jpg"
+    imagen: "/images/vino-4.jpg"
   },
   {
     id: 5,
@@ -52,7 +52,7 @@ const vinos = [
     region: "Cafayate",
     precio: 5500,
     descripcion: "Torrontés aromático y elegante de la región de Cafayate. Flores blancas, durazno y una frescura inigualable.",
-    imagen: "/images/torrontes1.jpg"
+    imagen: "/images/vino-5.jpg"
   },
   {
     id: 6,
@@ -63,7 +63,7 @@ const vinos = [
     region: "Luján de Cuyo",
     precio: 11000,
     descripcion: "Vino icónico de larga crianza en roble. Complejo, terroso y con una capacidad de guarda excepcional.",
-    imagen: "/images/blend2.jpg"
+    imagen: "/images/vino-6.jpg"
   }
 ]
 
