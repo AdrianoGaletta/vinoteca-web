@@ -1,11 +1,11 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, Suspense } from 'react'
 import { login } from '@/app/actions/auth'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
-export default function LoginPage() {
+function LoginForm() {
   const [state, action, pending] = useActionState(login, undefined)
   const searchParams = useSearchParams()
   const reset = searchParams.get('reset')
@@ -115,5 +115,13 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   )
 }

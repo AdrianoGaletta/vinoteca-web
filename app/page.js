@@ -21,78 +21,155 @@ export default function Home() {
 
   return (
     <>
-      
-      {/* HERO */}
-   <section aria-labelledby="hero-titulo" style={{
-      height: 'calc(100vh - 60px)',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      textAlign: 'center',
-      padding: '1rem 2rem',
-      borderBottom: '1px solid var(--dorado)',
-      backgroundImage: 'linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.85)), url(/images/hero-bg.jpg)',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
+      {/* ═══════════════ HERO ═══════════════ */}
+      <section aria-labelledby="hero-titulo" style={{
+        minHeight: 'calc(100vh - 56px)',
+        display: 'grid',
+        gridTemplateRows: '1fr auto',
+        position: 'relative',
+        overflow: 'hidden',
       }}>
-        <Image
-          className="fade-in"
-          src="/images/logo-hero.png"
-          alt="Cava del Plata"
-          width={500}
-          height={370}
-          style={{ objectFit: 'contain', marginBottom: '0rem' }}
-          priority
-        />
+        {/* Fondo */}
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <Image
+            src="/images/hero-bg.jpg"
+            alt=""
+            fill
+            priority
+            style={{ objectFit: 'cover', objectPosition: 'center 30%' }}
+          />
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(135deg, rgba(8,8,8,0.92) 0%, rgba(8,8,8,0.7) 50%, rgba(8,8,8,0.88) 100%)',
+          }} />
+        </div>
 
-        <h1 className="fade-in-up delay-2" id="hero-titulo" style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 'clamp(2.5rem, 7vw, 5.5rem)',
-          color: 'var(--crema)',
-          lineHeight: '1.05',
-          marginBottom: '1rem',
-          maxWidth: '900px',
-          letterSpacing: '-0.02em',
+        {/* Contenido central */}
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          textAlign: 'center',
+          padding: 'clamp(2rem, 6vw, 6rem)',
+          maxWidth: '100%',
+          width: '100%',
         }}>
-          Vinos que cuentan una historia
-        </h1>
+          {/* Eyebrow */}
+          <p className="fade-in delay-1" style={{
+            color: 'var(--dorado)',
+            fontSize: '0.7rem',
+            letterSpacing: '0.5em',
+            textTransform: 'uppercase',
+            marginBottom: '2rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '1rem',
+          }}>
+            <span style={{ display: 'inline-block', width: '32px', height: '1px', background: 'var(--dorado)' }} />
+            Vinoteca Boutique · Mendoza
+          </p>
 
-        <p className="fade-in-up delay-3" style={{
-          color: 'var(--crema)',
-          opacity: 0.7,
-          fontSize: '1rem',
-          maxWidth: '500px',
-          lineHeight: '1.7',
-          marginBottom: '1rem',
-        }}>
-          Boutique de vinos de autor seleccionados por sommeliers. 
-          Cada botella es una experiencia única.
-        </p>
+          <div className="fade-in-up delay-2">
+            <Image
+              src="/images/logo-hero.png"
+              alt="Cava del Plata"
+              width={320}
+              height={240}
+              style={{ objectFit: 'contain', marginBottom: '1.5rem' }}
+              priority
+            />
+          </div>
 
-        <Link className="btn-hover fade-in delay-4" href="/catalogo" style={{
-          backgroundColor: 'var(--dorado)',
-          color: 'var(--negro)',
-          padding: '1rem 2.5rem',
-          fontFamily: 'var(--font-body)',
-          fontSize: '0.9rem',
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          fontWeight: '600',
+          <h1 className="fade-in-up delay-3" id="hero-titulo" style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(2.8rem, 6vw, 5rem)',
+            color: 'var(--crema)',
+            lineHeight: '1.08',
+            letterSpacing: '-0.02em',
+            marginBottom: '1.5rem',
+          }}>
+            Vinos que cuentan<br />
+            <em style={{ fontStyle: 'italic', color: 'var(--dorado)' }}>una historia</em>
+          </h1>
+
+          <p className="fade-in-up delay-4" style={{
+            fontFamily: 'var(--font-editorial)',
+            color: 'var(--crema-apagada)',
+            fontSize: '1.1rem',
+            lineHeight: '1.8',
+            maxWidth: '520px',
+            marginBottom: '2.5rem',
+            fontWeight: 300,
+          }}>
+            Selección de vinos de autor curados por sommeliers.
+            Cada botella es el resultado de años de dedicación y terroir único.
+          </p>
+
+          <div className="fade-in delay-5" style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Link href="/catalogo" className="btn-hover" style={{
+              background: 'var(--dorado)',
+              color: 'var(--negro)',
+              padding: '0.9rem 2.5rem',
+              fontSize: '0.75rem',
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              fontWeight: '700',
+              display: 'inline-block',
+            }}>
+              Ver Catálogo
+            </Link>
+            <Link href="/nosotros" style={{
+              color: 'var(--crema-apagada)',
+              fontSize: '0.75rem',
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              borderBottom: '1px solid rgba(201,168,76,0.3)',
+              paddingBottom: '2px',
+              transition: 'color 0.3s, border-color 0.3s',
+            }}>
+              Nuestra historia →
+            </Link>
+          </div>
+        </div>
+
+        {/* Estadísticas en la parte inferior */}
+        <div className="fade-in delay-6" style={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          borderTop: '1px solid rgba(201,168,76,0.15)',
+          width: '100%',
+          maxWidth: '600px',
+          margin: '0 auto',
         }}>
-          Ver Catálogo
-        </Link>
+          {[
+            { num: '+200', label: 'Etiquetas' },
+            { num: '15+', label: 'Bodegas' },
+            { num: '100%', label: 'Origen Argentina' },
+          ].map(({ num, label }, i) => (
+            <div key={label} style={{
+              padding: '1.5rem 2rem',
+              borderRight: i < 2 ? '1px solid rgba(201,168,76,0.15)' : 'none',
+            }}>
+              <p style={{ fontFamily: 'var(--font-editorial)', fontSize: '1.6rem', color: 'var(--dorado)', fontWeight: 300 }}>{num}</p>
+              <p style={{ color: 'var(--crema-apagada)', fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '0.2rem' }}>{label}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
-      {/* SECCIÓN EDITORIAL */}
+      {/* ═══════════════ EDITORIAL ═══════════════ */}
       <section aria-label="Editorial" style={{
         position: 'relative',
-        height: '500px',
+        height: '480px',
         overflow: 'hidden',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
       }}>
         <Image
           src="/images/editorial-bg.jpg"
@@ -101,201 +178,226 @@ export default function Home() {
           style={{ objectFit: 'cover', objectPosition: 'center' }}
         />
         <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9))',
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(90deg, rgba(8,8,8,0.95) 0%, rgba(8,8,8,0.7) 50%, rgba(8,8,8,0.4) 100%)',
         }} />
-        <div style={{
-          position: 'relative',
-          zIndex: 1,
-          textAlign: 'center',
-          padding: '2rem',
-          maxWidth: '700px',
+        {/* Número editorial de fondo */}
+        <span style={{
+          position: 'absolute',
+          right: '5%',
+          bottom: '-2rem',
+          fontFamily: 'var(--font-editorial)',
+          fontSize: 'clamp(8rem, 20vw, 18rem)',
+          fontWeight: 300,
+          fontStyle: 'italic',
+          color: 'transparent',
+          WebkitTextStroke: '1px rgba(201,168,76,0.08)',
+          lineHeight: 1,
+          userSelect: 'none',
+          pointerEvents: 'none',
         }}>
-          <p style={{
-            color: 'var(--dorado)',
-            fontSize: '0.75rem',
-            letterSpacing: '0.4em',
-            textTransform: 'uppercase',
-            marginBottom: '1.5rem',
-          }}>
-            Nuestra filosofía
+          2025
+        </span>
+        <div style={{ position: 'relative', zIndex: 1, padding: 'clamp(2rem, 6vw, 6rem)', maxWidth: '600px' }}>
+          <p style={{ color: 'var(--dorado)', fontSize: '0.65rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: '1.5rem' }}>
+            — Nuestra filosofía
           </p>
           <h2 style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(2rem, 4vw, 3.5rem)',
+            fontFamily: 'var(--font-editorial)',
+            fontSize: 'clamp(1.8rem, 4vw, 3.2rem)',
             color: 'var(--crema)',
-            lineHeight: '1.2',
-            marginBottom: '1.5rem',
+            lineHeight: '1.3',
+            fontWeight: 300,
+            marginBottom: '2rem',
           }}>
-            Cada botella es el resultado de años de dedicación
+            Cada botella es el resultado<br />
+            <em>de años de dedicación</em>
           </h2>
           <Link href="/nosotros" style={{
             color: 'var(--dorado)',
-            fontSize: '0.8rem',
+            fontSize: '0.72rem',
             letterSpacing: '0.2em',
             textTransform: 'uppercase',
-            borderBottom: '1px solid var(--dorado)',
-            paddingBottom: '0.25rem',
+            borderBottom: '1px solid rgba(201,168,76,0.4)',
+            paddingBottom: '3px',
+            transition: 'all 0.3s',
           }}>
             Conocé nuestra historia
           </Link>
         </div>
       </section>
-      
-      {/* DEGRADADO DE TRANSICIÓN */}
-      <div style={{
-        height: '120px',
-        background: 'linear-gradient(to bottom, #1a1a1a, var(--negro))',
-        marginTop: '-1px',
-      }} />
-      
-      {/* DESTACADOS */}
+
+      {/* ═══════════════ DESTACADOS ═══════════════ */}
       <section aria-labelledby="destacados-titulo" style={{
-        padding: '5rem 2rem',
-        maxWidth: '1200px',
+        padding: 'clamp(4rem, 8vw, 8rem) clamp(1.5rem, 5vw, 4rem)',
+        maxWidth: '1300px',
         margin: '0 auto',
       }}>
-        <h2 id="destacados-titulo" style={{
-          fontFamily: 'var(--font-display)',
-          color: 'var(--dorado)',
-          fontSize: '2rem',
-          marginBottom: '0.5rem',
-          textAlign: 'center',
-        }}>
-          Destacados de la semana
-        </h2>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '1rem',
-          margin: '0.75rem auto 0.5rem',
-          maxWidth: '300px',
-        }}>
-          <div style={{ height: '1px', flex: 1, backgroundColor: 'var(--dorado)', opacity: 0.5 }} />
-          <span style={{ color: 'var(--dorado)', fontSize: '0.8rem' }}>✦</span>
-          <div style={{ height: '1px', flex: 1, backgroundColor: 'var(--dorado)', opacity: 0.5 }} />
+        {/* Header de sección */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '4rem', gap: '2rem', flexWrap: 'wrap' }}>
+          <div>
+            <p style={{ color: 'var(--dorado)', fontSize: '0.65rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
+              — Selección sommelier
+            </p>
+            <h2 id="destacados-titulo" style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(2rem, 4vw, 3.2rem)',
+              color: 'var(--crema)',
+              lineHeight: '1.1',
+            }}>
+              Destacados<br />de la semana
+            </h2>
+          </div>
+          <Link href="/catalogo" className="btn-hover" style={{
+            border: '1px solid rgba(201,168,76,0.3)',
+            color: 'var(--crema-apagada)',
+            padding: '0.7rem 1.5rem',
+            fontSize: '0.72rem',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+          }}>
+            Ver todos →
+          </Link>
         </div>
-        <p style={{
-          textAlign: 'center',
-          color: 'var(--crema)',
-          opacity: 0.6,
-          marginBottom: '3rem',
-          fontSize: '0.9rem',
-          letterSpacing: '0.05em',
-        }}>
-          Seleccionados por nuestros sommeliers
-        </p>
 
+        {/* Grid de vinos destacados */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '2rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '1.5px',
+          background: 'rgba(201,168,76,0.08)',
+          border: '1px solid rgba(201,168,76,0.08)',
         }}>
-          {destacados.map(vino => (
-            <article className="card-hover" key={vino.id} aria-label={vino.nombre} style={{
-              backgroundColor: 'var(--gris)',
-              border: '1px solid var(--gris-claro)',
-              padding: '2rem',
+          {destacados.map((vino, i) => (
+            <article key={vino.id} className="card-hover" style={{
+              background: 'var(--gris)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '0.75rem',
+              position: 'relative',
+              overflow: 'visible',
             }}>
+              {/* Número editorial */}
+              <span style={{
+                position: 'absolute',
+                top: '-1.5rem',
+                left: '1.5rem',
+                fontFamily: 'var(--font-editorial)',
+                fontSize: '4.5rem',
+                fontWeight: 300,
+                fontStyle: 'italic',
+                color: 'transparent',
+                WebkitTextStroke: '1px rgba(201,168,76,0.2)',
+                lineHeight: 1,
+                zIndex: 0,
+                userSelect: 'none',
+              }}>
+                {String(i + 1).padStart(2, '0')}
+              </span>
+
+              {/* Imagen */}
               <div style={{
-                width: '100%',
-                height: '250px',
+                height: '300px',
                 position: 'relative',
-                backgroundColor: '#111111',
-                borderBottom: '1px solid var(--dorado)',
-                marginBottom: '0.5rem',
+                background: '#0c0c0c',
+                overflow: 'hidden',
               }}>
                 <Image
                   src={vino.imagen}
                   alt={vino.nombre}
                   fill
-                  style={{ objectFit: 'contain', padding: '0.5rem' }}
+                  style={{ objectFit: 'contain', padding: '1.5rem', transition: 'transform 0.6s cubic-bezier(0.25,0.1,0.25,1)' }}
                 />
               </div>
 
-              <p style={{
-                color: 'var(--dorado)',
-                fontSize: '0.75rem',
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
-              }}>
-                {vino.varietal} · {vino.anio}
-              </p>
-              <h3 style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '1.3rem',
-                color: 'var(--crema)',
-              }}>
-                {vino.nombre}
-              </h3>
-              <p style={{
-                color: 'var(--crema)',
-                opacity: 0.6,
-                fontSize: '0.85rem',
-                lineHeight: '1.6',
-              }}>
-                {vino.descripcion.slice(0, 100)}...
-              </p>
-              <p style={{
-                color: 'var(--dorado)',
-                fontSize: '1.2rem',
-                fontWeight: '600',
-                marginTop: 'auto',
-              }}>
-                ${vino.precio.toLocaleString('es-AR')}
-              </p>
-              <Link className="btn-hover" href={`/vino/${vino.slug}`} style={{
-                border: '1px solid var(--dorado)',
-                color: 'var(--dorado)',
-                padding: '0.6rem 1rem',
-                textAlign: 'center',
-                fontSize: '0.8rem',
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-              }}>
-                Ver más
-              </Link>
+              {/* Contenido */}
+              <div style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '0.6rem', flexGrow: 1, position: 'relative', zIndex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                  <span className="varietal-tag">{vino.varietal}</span>
+                  {vino.anio && (
+                    <span style={{ color: 'var(--crema-apagada)', fontSize: '0.7rem', letterSpacing: '0.1em' }}>{vino.anio}</span>
+                  )}
+                </div>
+                <h3 style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '1.35rem',
+                  color: 'var(--crema)',
+                  lineHeight: '1.25',
+                }}>
+                  {vino.nombre}
+                </h3>
+                <p style={{ color: 'var(--crema-apagada)', fontSize: '0.78rem', letterSpacing: '0.06em' }}>
+                  {vino.bodega}
+                </p>
+                <p style={{
+                  color: 'var(--crema)',
+                  opacity: 0.55,
+                  fontSize: '0.82rem',
+                  lineHeight: '1.7',
+                  flexGrow: 1,
+                  fontFamily: 'var(--font-editorial)',
+                  fontWeight: 300,
+                }}>
+                  {vino.descripcion?.slice(0, 100)}...
+                </p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', paddingTop: '1rem', borderTop: '1px solid var(--gris-claro)' }}>
+                  <p style={{
+                    fontFamily: 'var(--font-editorial)',
+                    fontSize: '1.6rem',
+                    color: 'var(--dorado)',
+                    fontWeight: 300,
+                  }}>
+                    ${vino.precio.toLocaleString('es-AR')}
+                  </p>
+                  <Link href={`/vino/${vino.slug}`} className="btn-hover" style={{
+                    border: '1px solid var(--dorado)',
+                    color: 'var(--dorado)',
+                    padding: '0.55rem 1.2rem',
+                    fontSize: '0.68rem',
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                  }}>
+                    Ver más
+                  </Link>
+                </div>
+              </div>
             </article>
           ))}
         </div>
       </section>
 
-      {/* BANNER */}
+      {/* ═══════════════ PROPUESTA DE VALOR ═══════════════ */}
       <section aria-label="Propuesta de valor" style={{
-        backgroundColor: 'var(--gris)',
-        borderTop: '1px solid var(--dorado)',
-        borderBottom: '1px solid var(--dorado)',
-        padding: '4rem 2rem',
+        borderTop: '1px solid rgba(201,168,76,0.12)',
+        borderBottom: '1px solid rgba(201,168,76,0.12)',
+        background: 'linear-gradient(180deg, var(--gris) 0%, var(--negro) 100%)',
+        padding: 'clamp(3rem, 6vw, 5rem) clamp(1.5rem, 5vw, 4rem)',
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '2rem',
-        textAlign: 'center',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: '0',
       }}>
         {[
-          { titulo: 'Envío gratis', descripcion: 'En compras mayores a $15.000' },
-          { titulo: 'Selección sommelier', descripcion: 'Cada vino es elegido por expertos' },
-          { titulo: 'Pago seguro', descripcion: 'Medios de pago protegidos' },
-        ].map(item => (
-          <div key={item.titulo}>
+          { icon: '◈', titulo: 'Envío gratis', desc: 'En compras mayores a $15.000' },
+          { icon: '◇', titulo: 'Selección sommelier', desc: 'Cada vino elegido por expertos' },
+          { icon: '◆', titulo: 'Pago seguro', desc: 'Medios de pago protegidos' },
+        ].map((item, i) => (
+          <div key={item.titulo} style={{
+            padding: 'clamp(1.5rem, 3vw, 2.5rem)',
+            textAlign: 'center',
+            borderRight: i < 2 ? '1px solid rgba(201,168,76,0.1)' : 'none',
+          }}>
+            <div style={{ color: 'var(--dorado)', fontSize: '1.2rem', marginBottom: '1rem', opacity: 0.7 }}>{item.icon}</div>
             <h3 style={{
               fontFamily: 'var(--font-display)',
-              color: 'var(--dorado)',
-              fontSize: '1.1rem',
+              color: 'var(--crema)',
+              fontSize: '1rem',
               marginBottom: '0.5rem',
+              fontWeight: 400,
             }}>
               {item.titulo}
             </h3>
-            <p style={{
-              color: 'var(--crema)',
-              opacity: 0.6,
-              fontSize: '0.85rem',
-            }}>
-              {item.descripcion}
+            <p style={{ color: 'var(--crema-apagada)', fontSize: '0.8rem', lineHeight: '1.6' }}>
+              {item.desc}
             </p>
           </div>
         ))}

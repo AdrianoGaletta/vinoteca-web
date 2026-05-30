@@ -61,12 +61,11 @@ export async function registro(prevState, formData) {
     return { success: 'Te enviamos un email de confirmación. Revisá tu bandeja de entrada.' }
   }
 
-  // Guardar nombre/apellido en profiles
+  // Guardar nombre/apellido en profiles (upsert por si el trigger todavía no corrió)
   if (data.user) {
     await supabase
       .from('profiles')
-      .update({ nombre, apellido })
-      .eq('id', data.user.id)
+      .upsert({ id: data.user.id, nombre, apellido: apellido || null })
   }
 
   redirect('/mi-cuenta')
