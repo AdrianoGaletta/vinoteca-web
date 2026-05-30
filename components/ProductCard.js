@@ -65,7 +65,7 @@ export default function ProductCard({ vino }) {
           letterSpacing: '0.15em',
           textTransform: 'uppercase',
         }}>
-          {vino.varietal} · {vino.region} · {vino.año}
+          {vino.varietal}{vino.anio ? ` · ${vino.anio}` : ''}
         </p>
 
         <h2 style={{
@@ -107,7 +107,7 @@ export default function ProductCard({ vino }) {
 
         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
           <Link
-            href={`/vino/${vino.id}`}
+            href={`/vino/${vino.slug ?? vino.id}`}
             style={{
               flex: 1,
               border: '1px solid rgba(255,255,255,0.15)',

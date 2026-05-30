@@ -1,11 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useCart } from './CartContext'
 import Image from 'next/image'
+import { useCart } from './CartContext'
 
 export default function Navbar() {
-  const { totalItems } = useCart()
+  const { totalItems, usuario } = useCart()
 
   return (
     <nav aria-label="Navegación principal" style={{
@@ -63,7 +63,7 @@ export default function Navbar() {
         <li><Link href="/contacto" className="nav-link" style={{ color: 'var(--crema)' }}>Contacto</Link></li>
       </ul>
 
-      {/* DERECHA — Copa + Carrito */}
+      {/* DERECHA — Copa + Auth + Carrito */}
       <div style={{
         display: 'flex',
         justifyContent: 'flex-end',
@@ -78,6 +78,54 @@ export default function Navbar() {
           style={{ objectFit: 'contain' }}
           priority
         />
+
+        {/* Auth: Mi cuenta o Ingresar */}
+        {usuario ? (
+          <Link
+            href="/mi-cuenta"
+            aria-label="Mi cuenta"
+            title={usuario.email}
+            style={{
+              color: 'var(--crema)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              fontSize: '0.82rem',
+              letterSpacing: '0.06em',
+              textDecoration: 'none',
+              opacity: 0.85,
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span style={{ display: 'none' }}>Mi cuenta</span>
+          </Link>
+        ) : (
+          <Link
+            href="/auth/login"
+            style={{
+              color: 'var(--crema)',
+              fontSize: '0.82rem',
+              letterSpacing: '0.06em',
+              textDecoration: 'none',
+              opacity: 0.85,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/>
+              <polyline points="10 17 15 12 10 7"/>
+              <line x1="15" y1="12" x2="3" y2="12"/>
+            </svg>
+            <span style={{ display: 'none' }}>Ingresar</span>
+          </Link>
+        )}
+
+        {/* Carrito */}
         <Link href="/carrito" aria-label={`Carrito con ${totalItems} productos`} style={{
           color: 'var(--dorado)',
           display: 'flex',

@@ -1,97 +1,84 @@
 'use client'
 
-import { useState } from 'react'
-import vinos from '@/data/vinos'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import ProductCard from '@/components/ProductCard'
 
 export default function Catalogo() {
+  const [vinos, setVinos] = useState([])
   const [filtro, setFiltro] = useState('Todos')
+  const [cargando, setCargando] = useState(true)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase
+      .from('productos')
+      .select('*')
+      .eq('activo', true)
+      .order('nombre')
+      .then(({ data }) => {
+        setVinos(data ?? [])
+        setCargando(false)
+      })
+  }, [])
 
   const variatales = ['Todos', ...new Set(vinos.map(v => v.varietal))]
-
-  const vinosFiltrados = filtro === 'Todos'
-    ? vinos
-    : vinos.filter(v => v.varietal === filtro)
+  const vinosFiltrados = filtro === 'Todos' ? vinos : vinos.filter(v => v.varietal === filtro)
 
   return (
     <section style={{ padding: '4rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
 
       <header style={{ marginBottom: '3rem', textAlign: 'center' }}>
-        <h1 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: '2.5rem',
-          color: 'var(--crema)',
-          marginBottom: '0.5rem',
-        }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', color: 'var(--crema)', marginBottom: '0.5rem' }}>
           Catálogo
         </h1>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '1rem',
-          margin: '1rem auto',
-          maxWidth: '300px',
-        }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', margin: '1rem auto', maxWidth: '300px' }}>
           <div style={{ height: '1px', flex: 1, backgroundColor: 'var(--dorado)', opacity: 0.5 }} />
           <span style={{ color: 'var(--dorado)', fontSize: '0.8rem' }}>✦</span>
           <div style={{ height: '1px', flex: 1, backgroundColor: 'var(--dorado)', opacity: 0.5 }} />
         </div>
-        <p style={{
-          color: 'var(--crema)',
-          opacity: 0.6,
-          fontSize: '0.9rem',
-          letterSpacing: '0.05em',
-        }}>
-          {vinosFiltrados.length} vinos disponibles
+        <p style={{ color: 'var(--crema)', opacity: 0.6, fontSize: '0.9rem', letterSpacing: '0.05em' }}>
+          {cargando ? 'Cargando...' : `${vinosFiltrados.length} vinos disponibles`}
         </p>
       </header>
 
       {/* FILTROS */}
-      <nav aria-label="Filtros por varietal" style={{
-        display: 'flex',
-        gap: '0.75rem',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        marginBottom: '3rem',
-      }}>
-        {variatales.map(varietal => (
-          <button
-            key={varietal}
-            onClick={() => setFiltro(varietal)}
-            aria-pressed={filtro === varietal}
-            style={{
-              padding: '0.5rem 1.25rem',
-              border: '1px solid',
-              borderColor: filtro === varietal ? 'var(--dorado)' : 'var(--gris-claro)',
-              backgroundColor: filtro === varietal ? 'var(--dorado)' : 'transparent',
-              color: filtro === varietal ? 'var(--negro)' : 'var(--crema)',
-              fontFamily: 'var(--font-body)',
-              fontSize: '0.8rem',
-              letterSpacing: '0.08em',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-          >
-            {varietal}
-          </button>
-        ))}
-      </nav>
+      {!cargando && (
+        <nav aria-label="Filtros por varietal" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '3rem' }}>
+          {variatales.map(varietal => (
+            <button
+              key={varietal}
+              onClick={() => setFiltro(varietal)}
+              aria-pressed={filtro === varietal}
+              style={{
+                padding: '0.5rem 1.25rem',
+                border: '1px solid',
+                borderColor: filtro === varietal ? 'var(--dorado)' : 'var(--gris-claro)',
+                backgroundColor: filtro === varietal ? 'var(--dorado)' : 'transparent',
+                color: filtro === varietal ? 'var(--negro)' : 'var(--crema)',
+                fontFamily: 'var(--font-body)',
+                fontSize: '0.8rem',
+                letterSpacing: '0.08em',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              {varietal}
+            </button>
+          ))}
+        </nav>
+      )}
 
-      {/* GRID DE PRODUCTOS */}
-      <div
-        role="list"
-        aria-label="Lista de vinos"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '2rem',
-        }}
-      >
-        {vinosFiltrados.map(vino => (
-          <ProductCard key={vino.id} vino={vino} />
-        ))}
-      </div>
+      {/* GRID */}
+      {cargando ? (
+        <div style={{ textAlign: 'center', color: '#666', padding: '4rem' }}>Cargando vinos...</div>
+      ) : (
+        <div role="list" aria-label="Lista de vinos" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
+          {vinosFiltrados.map(vino => (
+            <ProductCard key={vino.id} vino={vino} />
+          ))}
+        </div>
+      )}
 
     </section>
   )

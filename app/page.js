@@ -2,15 +2,21 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import vinos from '@/data/vinos'
+import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 
 export default function Home() {
   const [destacados, setDestacados] = useState([])
 
   useEffect(() => {
-    const top = vinos.slice(0, 3)
-    setDestacados(top)
+    const supabase = createClient()
+    supabase
+      .from('productos')
+      .select('*')
+      .eq('activo', true)
+      .eq('destacado', true)
+      .limit(3)
+      .then(({ data }) => setDestacados(data ?? []))
   }, [])
 
   return (
@@ -218,7 +224,7 @@ export default function Home() {
                 letterSpacing: '0.15em',
                 textTransform: 'uppercase',
               }}>
-                {vino.varietal} · {vino.año}
+                {vino.varietal} · {vino.anio}
               </p>
               <h3 style={{
                 fontFamily: 'var(--font-display)',
@@ -243,7 +249,7 @@ export default function Home() {
               }}>
                 ${vino.precio.toLocaleString('es-AR')}
               </p>
-              <Link className="btn-hover" href={`/vino/${vino.id}`} style={{
+              <Link className="btn-hover" href={`/vino/${vino.slug}`} style={{
                 border: '1px solid var(--dorado)',
                 color: 'var(--dorado)',
                 padding: '0.6rem 1rem',
