@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import PagarMercadoPago from './PagarMercadoPago'
 
 export const metadata = { title: 'Pedido confirmado | Cava del Plata' }
 
@@ -15,7 +16,7 @@ const estadoColor = {
 }
 
 const estadoLabel = {
-  pendiente:       'Pendiente de confirmación',
+  pendiente:       'Pendiente de pago',
   pagado:          'Pago aprobado',
   confirmado:      'Confirmado',
   en_preparacion:  'En preparación',
@@ -27,20 +28,17 @@ const estadoLabel = {
 const pagoMensaje = {
   aprobado: { texto: '¡Pago aprobado! Tu pedido está confirmado.', color: '#4caf50', bg: '#0a1a0a', border: '#1a3a1a' },
   pendiente: { texto: 'Tu pago está siendo procesado. Te avisaremos cuando se confirme.', color: '#c9a84c', bg: '#1a150a', border: '#3a2a0a' },
-  fallido:   { texto: 'El pago no pudo procesarse. Podés intentar de nuevo desde Mi Cuenta.', color: '#f44336', bg: '#1a0a0a', border: '#3a1a1a' },
+  fallido:   { texto: 'El pago no pudo procesarse. Podés intentar de nuevo.', color: '#f44336', bg: '#1a0a0a', border: '#3a1a1a' },
 }
 
 export default async function PedidoPage({ params, searchParams }) {
   const { id } = await params
-  const { pago, mp } = await searchParams
-  const mpUrl = mp ? decodeURIComponent(mp) : null
+  const { pago } = await searchParams
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  // Si MP devuelve pago=aprobado, actualizar el pedido directamente
-  // (el webhook no funciona en localhost por ser una URL privada)
   if (pago === 'aprobado') {
     await supabase
       .from('pedidos')
@@ -75,11 +73,12 @@ export default async function PedidoPage({ params, searchParams }) {
 
   const estadoDisplay = pago === 'aprobado' ? 'pagado' : pedido.estado
   const color = estadoColor[estadoDisplay] ?? 'var(--dorado)'
+  const isPendiente = estadoDisplay === 'pendiente'
 
   return (
     <main style={{ maxWidth: '760px', margin: '0 auto', padding: 'clamp(3rem, 6vw, 5rem) clamp(1.5rem, 4vw, 3rem)' }}>
 
-      {/* BANNER MERCADO PAGO */}
+      {/* BANNER ESTADO PAGO */}
       {pago && pagoMensaje[pago] && (
         <div role="alert" style={{
           background: pagoMensaje[pago].bg,
@@ -117,7 +116,7 @@ export default async function PedidoPage({ params, searchParams }) {
         <p style={{ fontFamily: 'var(--font-editorial)', color: 'var(--crema-apagada)', fontSize: '1rem', fontWeight: 300, lineHeight: 1.7 }}>
           {pago === 'aprobado'
             ? 'Tu pago fue procesado correctamente. Comenzamos a preparar tu pedido.'
-            : 'Recibimos tu pedido. Te notificaremos sobre el estado del pago y el seguimiento.'}
+            : 'Recibimos tu pedido. Completá el pago para que lo procesemos.'}
         </p>
       </div>
 
@@ -228,52 +227,8 @@ export default async function PedidoPage({ params, searchParams }) {
         </Link>
       </div>
 
-      {/* LINK MERCADO PAGO — visible si viene la URL de la preferencia */}
-      {mpUrl && pedido.estado === 'pendiente' && (
-        <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
-          <a href={mpUrl} style={{
-            display: 'inline-block',
-            background: '#009ee3', color: '#fff',
-            padding: '0.75rem 2rem', fontSize: '0.75rem',
-            letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600,
-            borderRadius: '2px',
-          }}>
-            Pagar con Mercado Pago
-          </a>
-        </div>
-      )}
-
-      {/* PAGO — botones de acción cuando el pedido está pendiente */}
-      {pedido.estado === 'pendiente' && (
-        <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
-          {mpUrl && (
-            <a href={mpUrl} className="btn-hover" style={{
-              display: 'inline-block',
-              background: 'var(--dorado)', color: 'var(--negro)',
-              padding: '0.85rem 2.5rem', fontSize: '0.75rem',
-              letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700,
-              marginBottom: '1rem',
-            }}>
-              Pagar con Mercado Pago
-            </a>
-          )}
-          <p style={{ color: 'var(--crema-apagada)', fontSize: '0.7rem', marginBottom: '0.75rem', opacity: 0.5 }}>
-            — Entorno de pruebas —
-          </p>
-          <Link href={`/pedido/${pedido.id}?pago=aprobado`} style={{
-            display: 'inline-block',
-            border: '1px dashed rgba(201,168,76,0.3)',
-            color: 'var(--crema-apagada)',
-            padding: '0.6rem 1.5rem',
-            fontSize: '0.7rem',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            opacity: 0.6,
-          }}>
-            Simular pago aprobado
-          </Link>
-        </div>
-      )}
+      {/* PAGO CON MERCADO PAGO — solo cuando el pedido no está pagado */}
+      {isPendiente && <PagarMercadoPago pedidoId={id} />}
 
     </main>
   )

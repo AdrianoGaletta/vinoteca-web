@@ -1,9 +1,9 @@
 'use client'
 
-import { useActionState, Suspense, useState } from 'react'
+import { useActionState, Suspense, useState, useEffect } from 'react'
 import { login } from '@/app/actions/auth'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 
 function validarEmail(email) {
   if (!email?.trim()) return 'El email es requerido'
@@ -34,8 +34,16 @@ function LoginForm() {
   const [state, action, pending] = useActionState(login, undefined)
   const searchParams = useSearchParams()
   const reset = searchParams.get('reset')
+  const router = useRouter()
 
   const [errores, setErrores] = useState({})
+
+  useEffect(() => {
+    if (state?.success) {
+      router.refresh()
+      router.push('/mi-cuenta')
+    }
+  }, [state?.success, router])
 
   function validarCampo(campo, valor) {
     const fn = campo === 'email' ? validarEmail : validarPassword

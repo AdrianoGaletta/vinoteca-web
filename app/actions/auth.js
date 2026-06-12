@@ -22,7 +22,7 @@ export async function login(prevState, formData) {
     return { error: 'Email o contraseña incorrectos.' }
   }
 
-  redirect('/mi-cuenta')
+  return { success: true }
 }
 
 export async function registro(prevState, formData) {
