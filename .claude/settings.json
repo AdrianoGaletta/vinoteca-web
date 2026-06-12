@@ -22,7 +22,18 @@
       "Bash(vercel --version)",
       "Bash(vercel logout *)",
       "Bash(git check-ignore *)",
-      "PowerShell(cmdkey /delete:\"LegacyGeneric:target=git:https://github.com\")"
+      "PowerShell(cmdkey /delete:\"LegacyGeneric:target=git:https://github.com\")",
+      "Bash(git commit *)",
+      "mcp__plugin_vercel_vercel__list_teams",
+      "mcp__plugin_vercel_vercel__list_projects",
+      "mcp__plugin_vercel_vercel__list_deployments",
+      "Bash(gh auth *)",
+      "PowerShell(winget install --id GitHub.cli --silent --accept-source-agreements --accept-package-agreements 2>&1)",
+      "PowerShell(gh auth status 2>&1)",
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); gh auth status 2>&1)",
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); gh auth login --git-protocol https --hostname github.com --web 2>&1)",
+      "mcp__plugin_vercel_vercel__get_runtime_logs",
+      "mcp__plugin_vercel_vercel__get_deployment_build_logs"
     ],
     "additionalDirectories": [
       "c:\\Users\\totog\\Desktop\\Carpetas\\vinoteca-web\\app\\api\\productos"
