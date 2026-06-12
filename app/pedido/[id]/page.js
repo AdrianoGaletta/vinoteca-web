@@ -73,7 +73,8 @@ export default async function PedidoPage({ params, searchParams }) {
 
   if (!pedido) redirect('/mi-cuenta')
 
-  const color = estadoColor[pedido.estado] ?? 'var(--dorado)'
+  const estadoDisplay = pago === 'aprobado' ? 'pagado' : pedido.estado
+  const color = estadoColor[estadoDisplay] ?? 'var(--dorado)'
 
   return (
     <main style={{ maxWidth: '760px', margin: '0 auto', padding: 'clamp(3rem, 6vw, 5rem) clamp(1.5rem, 4vw, 3rem)' }}>
@@ -147,7 +148,7 @@ export default async function PedidoPage({ params, searchParams }) {
               color,
               border: `1px solid ${color}33`,
             }}>
-              {estadoLabel[pedido.estado]}
+              {estadoLabel[estadoDisplay]}
             </span>
           </div>
           <div>
@@ -226,6 +227,21 @@ export default async function PedidoPage({ params, searchParams }) {
           Seguir comprando
         </Link>
       </div>
+
+      {/* LINK MERCADO PAGO — visible si viene la URL de la preferencia */}
+      {mpUrl && pedido.estado === 'pendiente' && (
+        <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+          <a href={mpUrl} style={{
+            display: 'inline-block',
+            background: '#009ee3', color: '#fff',
+            padding: '0.75rem 2rem', fontSize: '0.75rem',
+            letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600,
+            borderRadius: '2px',
+          }}>
+            Pagar con Mercado Pago
+          </a>
+        </div>
+      )}
 
       {/* PAGO — botones de acción cuando el pedido está pendiente */}
       {pedido.estado === 'pendiente' && (
