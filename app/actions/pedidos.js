@@ -2,7 +2,6 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { MercadoPagoConfig, Preference } from 'mercadopago'
 
 export async function crearPedido(prevState, formData) {
   const supabase = await createClient()
@@ -115,41 +114,6 @@ export async function crearPedido(prevState, formData) {
   // Marcar carrito como convertido y vaciar items
   await supabase.from('carritos').update({ estado: 'convertido' }).eq('id', carrito.id)
   await supabase.from('carrito_items').delete().eq('carrito_id', carrito.id)
-
-  // Intentar crear preferencia de Mercado Pago
-  let checkoutUrl = null
-
-  if (process.env.MP_ACCESS_TOKEN) {
-    try {
-      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-      const mpClient = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN })
-      const preferenceClient = new Preference(mpClient)
-
-      const pref = await preferenceClient.create({
-        body: {
-          items: items.map(item => ({
-            id:          String(item.productos.id),
-            title:       item.productos.nombre,
-            quantity:    item.cantidad,
-            unit_price:  item.precio_unitario,
-            currency_id: 'ARS',
-          })),
-          back_urls: {
-            success: `${baseUrl}/pedido/${pedido.id}?pago=aprobado`,
-            failure: `${baseUrl}/pedido/${pedido.id}?pago=fallido`,
-            pending: `${baseUrl}/pedido/${pedido.id}?pago=pendiente`,
-          },
-          ...(baseUrl.startsWith('https') && { auto_return: 'approved' }),
-          external_reference:   String(pedido.id),
-          statement_descriptor: 'Cava del Plata',
-        },
-      })
-
-      checkoutUrl = pref.sandbox_init_point || pref.init_point
-    } catch (mpErr) {
-      console.error('Error creando preferencia MP:', mpErr.message)
-    }
-  }
 
   redirect(`/pedido/${pedido.id}?pago=aprobado`)
 }
