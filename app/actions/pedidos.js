@@ -151,9 +151,5 @@ export async function crearPedido(prevState, formData) {
     }
   }
 
-  // Siempre redirigir a la página del pedido; el link a MP se muestra ahí
-  const dest = checkoutUrl
-    ? `/pedido/${pedido.id}?mp=${encodeURIComponent(checkoutUrl)}`
-    : `/pedido/${pedido.id}`
-  redirect(dest)
+  redirect(`/pedido/${pedido.id}?pago=aprobado`)
 }
