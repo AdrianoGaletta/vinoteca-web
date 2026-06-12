@@ -151,6 +151,9 @@ export async function crearPedido(prevState, formData) {
     }
   }
 
-  // redirect() debe estar fuera del try/catch (lanza excepción interna de Next.js)
-  redirect(checkoutUrl ?? `/pedido/${pedido.id}`)
+  // Siempre redirigir a la página del pedido; el link a MP se muestra ahí
+  const dest = checkoutUrl
+    ? `/pedido/${pedido.id}?mp=${encodeURIComponent(checkoutUrl)}`
+    : `/pedido/${pedido.id}`
+  redirect(dest)
 }

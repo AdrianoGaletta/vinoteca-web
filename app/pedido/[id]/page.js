@@ -32,7 +32,8 @@ const pagoMensaje = {
 
 export default async function PedidoPage({ params, searchParams }) {
   const { id } = await params
-  const { pago } = await searchParams
+  const { pago, mp } = await searchParams
+  const mpUrl = mp ? decodeURIComponent(mp) : null
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -226,9 +227,20 @@ export default async function PedidoPage({ params, searchParams }) {
         </Link>
       </div>
 
-      {/* BOTÓN PRUEBA — solo visible cuando el pedido está pendiente */}
+      {/* PAGO — botones de acción cuando el pedido está pendiente */}
       {pedido.estado === 'pendiente' && (
-        <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+        <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
+          {mpUrl && (
+            <a href={mpUrl} className="btn-hover" style={{
+              display: 'inline-block',
+              background: 'var(--dorado)', color: 'var(--negro)',
+              padding: '0.85rem 2.5rem', fontSize: '0.75rem',
+              letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700,
+              marginBottom: '1rem',
+            }}>
+              Pagar con Mercado Pago
+            </a>
+          )}
           <p style={{ color: 'var(--crema-apagada)', fontSize: '0.7rem', marginBottom: '0.75rem', opacity: 0.5 }}>
             — Entorno de pruebas —
           </p>
