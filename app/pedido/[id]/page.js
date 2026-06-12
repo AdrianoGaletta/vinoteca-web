@@ -226,6 +226,27 @@ export default async function PedidoPage({ params, searchParams }) {
         </Link>
       </div>
 
+      {/* BOTÓN PRUEBA — solo visible cuando el pedido está pendiente */}
+      {pedido.estado === 'pendiente' && (
+        <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+          <p style={{ color: 'var(--crema-apagada)', fontSize: '0.7rem', marginBottom: '0.75rem', opacity: 0.5 }}>
+            — Entorno de pruebas —
+          </p>
+          <Link href={`/pedido/${pedido.id}?pago=aprobado`} style={{
+            display: 'inline-block',
+            border: '1px dashed rgba(201,168,76,0.3)',
+            color: 'var(--crema-apagada)',
+            padding: '0.6rem 1.5rem',
+            fontSize: '0.7rem',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            opacity: 0.6,
+          }}>
+            Simular pago aprobado
+          </Link>
+        </div>
+      )}
+
     </main>
   )
 }

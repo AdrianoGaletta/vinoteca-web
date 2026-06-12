@@ -21,7 +21,8 @@
       "Bash(npm i *)",
       "Bash(vercel --version)",
       "Bash(vercel logout *)",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "PowerShell(cmdkey /delete:\"LegacyGeneric:target=git:https://github.com\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\totog\\Desktop\\Carpetas\\vinoteca-web\\app\\api\\productos"
