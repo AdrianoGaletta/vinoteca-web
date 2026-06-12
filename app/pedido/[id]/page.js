@@ -6,6 +6,7 @@ export const metadata = { title: 'Pedido confirmado | Cava del Plata' }
 
 const estadoColor = {
   pendiente:       '#c9a84c',
+  pagado:          '#4caf50',
   confirmado:      '#2196f3',
   en_preparacion:  '#ff9800',
   enviado:         '#9c27b0',
@@ -15,6 +16,7 @@ const estadoColor = {
 
 const estadoLabel = {
   pendiente:       'Pendiente de confirmación',
+  pagado:          'Pago aprobado',
   confirmado:      'Confirmado',
   en_preparacion:  'En preparación',
   enviado:         'Enviado',
@@ -22,12 +24,34 @@ const estadoLabel = {
   cancelado:       'Cancelado',
 }
 
-export default async function PedidoPage({ params }) {
+const pagoMensaje = {
+  aprobado: { texto: '¡Pago aprobado! Tu pedido está confirmado.', color: '#4caf50', bg: '#0a1a0a', border: '#1a3a1a' },
+  pendiente: { texto: 'Tu pago está siendo procesado. Te avisaremos cuando se confirme.', color: '#c9a84c', bg: '#1a150a', border: '#3a2a0a' },
+  fallido:   { texto: 'El pago no pudo procesarse. Podés intentar de nuevo desde Mi Cuenta.', color: '#f44336', bg: '#1a0a0a', border: '#3a1a1a' },
+}
+
+export default async function PedidoPage({ params, searchParams }) {
   const { id } = await params
+  const { pago } = await searchParams
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
+
+  // Si MP devuelve pago=aprobado, actualizar el pedido directamente
+  // (el webhook no funciona en localhost por ser una URL privada)
+  if (pago === 'aprobado') {
+    await supabase
+      .from('pedidos')
+      .update({ estado: 'pagado' })
+      .eq('id', id)
+      .eq('usuario_id', user.id)
+
+    await supabase
+      .from('transacciones')
+      .update({ estado: 'aprobado' })
+      .eq('pedido_id', id)
+  }
 
   const { data: pedido } = await supabase
     .from('pedidos')
@@ -53,6 +77,22 @@ export default async function PedidoPage({ params }) {
   return (
     <main style={{ maxWidth: '760px', margin: '0 auto', padding: 'clamp(3rem, 6vw, 5rem) clamp(1.5rem, 4vw, 3rem)' }}>
 
+      {/* BANNER MERCADO PAGO */}
+      {pago && pagoMensaje[pago] && (
+        <div role="alert" style={{
+          background: pagoMensaje[pago].bg,
+          border: `1px solid ${pagoMensaje[pago].border}`,
+          borderRadius: '2px',
+          padding: '1rem 1.5rem',
+          marginBottom: '2rem',
+          color: pagoMensaje[pago].color,
+          fontSize: '0.88rem',
+          lineHeight: 1.6,
+        }}>
+          {pagoMensaje[pago].texto}
+        </div>
+      )}
+
       {/* CONFIRMACIÓN */}
       <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
         <div style={{
@@ -64,16 +104,18 @@ export default async function PedidoPage({ params }) {
           color,
           fontSize: '1.5rem',
         }}>
-          ✓
+          {pago === 'fallido' ? '✕' : '✓'}
         </div>
         <p style={{ color: 'var(--dorado)', fontSize: '0.65rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
           — Pedido recibido
         </p>
         <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 2.8rem)', color: 'var(--crema)', fontWeight: 400, marginBottom: '0.75rem' }}>
-          ¡Gracias por tu compra!
+          {pago === 'aprobado' ? '¡Pago confirmado!' : '¡Gracias por tu compra!'}
         </h1>
         <p style={{ fontFamily: 'var(--font-editorial)', color: 'var(--crema-apagada)', fontSize: '1rem', fontWeight: 300, lineHeight: 1.7 }}>
-          Te contactaremos pronto con los datos para el pago y el seguimiento de tu pedido.
+          {pago === 'aprobado'
+            ? 'Tu pago fue procesado correctamente. Comenzamos a preparar tu pedido.'
+            : 'Recibimos tu pedido. Te notificaremos sobre el estado del pago y el seguimiento.'}
         </p>
       </div>
 

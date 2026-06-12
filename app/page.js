@@ -7,6 +7,8 @@ import Image from 'next/image'
 
 export default function Home() {
   const [destacados, setDestacados] = useState([])
+  const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -16,7 +18,11 @@ export default function Home() {
       .eq('activo', true)
       .eq('destacado', true)
       .limit(3)
-      .then(({ data }) => setDestacados(data ?? []))
+      .then(({ data, error }) => {
+        if (error) setError(error.message)
+        else setDestacados(data ?? [])
+        setCargando(false)
+      })
   }, [])
 
   return (
@@ -262,6 +268,21 @@ export default function Home() {
         </div>
 
         {/* Grid de vinos destacados */}
+        {error && (
+          <p style={{ color: 'var(--crema-apagada)', fontFamily: 'var(--font-editorial)', fontSize: '1rem', textAlign: 'center', padding: '3rem 0', opacity: 0.6 }}>
+            No se pudieron cargar los vinos destacados.
+          </p>
+        )}
+
+        {cargando && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5px', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.08)' }}>
+            {[1, 2, 3].map(i => (
+              <div key={i} style={{ background: 'var(--gris)', height: '460px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            ))}
+          </div>
+        )}
+
+        {!cargando && !error && (
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
@@ -364,6 +385,7 @@ export default function Home() {
             </article>
           ))}
         </div>
+        )}
       </section>
 
       {/* ═══════════════ PROPUESTA DE VALOR ═══════════════ */}

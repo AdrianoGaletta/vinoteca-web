@@ -1,11 +1,74 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { registro } from '@/app/actions/auth'
 import Link from 'next/link'
 
+// ── Validadores ──────────────────────────────────────────
+function v(campo, valor) {
+  switch (campo) {
+    case 'nombre':
+      if (!valor?.trim()) return 'El nombre es requerido'
+      if (valor.trim().length < 2) return 'Mínimo 2 caracteres'
+      return ''
+    case 'email':
+      if (!valor?.trim()) return 'El email es requerido'
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor.trim())) return 'Email inválido'
+      return ''
+    case 'password':
+      if (!valor) return 'La contraseña es requerida'
+      if (valor.length < 6) return 'Mínimo 6 caracteres'
+      if (!/[A-Za-z]/.test(valor) || !/[0-9]/.test(valor)) return 'Debe contener letras y números'
+      return ''
+    default:
+      return ''
+  }
+}
+
+const labelStyle = {
+  display: 'block',
+  color: 'var(--crema)',
+  fontSize: '0.85rem',
+  marginBottom: '0.5rem',
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+}
+
+function inputStyle(error) {
+  return {
+    width: '100%',
+    padding: '0.75rem 1rem',
+    background: '#1a1a1a',
+    border: `1px solid ${error ? '#f44336' : 'var(--gris-claro)'}`,
+    borderRadius: '6px',
+    color: 'var(--crema)',
+    fontSize: '1rem',
+    outline: 'none',
+    boxSizing: 'border-box',
+    transition: 'border-color 0.2s',
+  }
+}
+
+function FieldError({ id, msg }) {
+  if (!msg) return null
+  return <p id={id} role="alert" style={{ color: '#f44336', fontSize: '0.78rem', marginTop: '0.3rem' }}>{msg}</p>
+}
+
 export default function RegistroPage() {
   const [state, action, pending] = useActionState(registro, undefined)
+  const [errores, setErrores] = useState({})
+
+  function validarCampo(campo, valor) {
+    setErrores(prev => ({ ...prev, [campo]: v(campo, valor) }))
+  }
+
+  function handleSubmit(e) {
+    const fd = new FormData(e.currentTarget)
+    const campos = ['nombre', 'email', 'password']
+    const nuevoErrores = Object.fromEntries(campos.map(c => [c, v(c, fd.get(c))]))
+    setErrores(nuevoErrores)
+    if (Object.values(nuevoErrores).some(Boolean)) e.preventDefault()
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--negro)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
@@ -23,35 +86,62 @@ export default function RegistroPage() {
         </div>
 
         {state?.success ? (
-          <div style={{ background: '#1a2e1a', border: '1px solid #2d5a2d', borderRadius: '8px', padding: '1.5rem', color: '#4caf50', textAlign: 'center' }}>
+          <div role="alert" style={{ background: '#1a2e1a', border: '1px solid #2d5a2d', borderRadius: '8px', padding: '1.5rem', color: '#4caf50', textAlign: 'center' }}>
             <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>¡Cuenta creada!</p>
             <p style={{ fontSize: '0.9rem' }}>{state.success}</p>
           </div>
         ) : (
-          <form action={action} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+          <form action={action} onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div>
                 <label htmlFor="nombre" style={labelStyle}>Nombre *</label>
-                <input id="nombre" name="nombre" type="text" required autoComplete="given-name" style={inputStyle} />
+                <input
+                  id="nombre" name="nombre" type="text" autoComplete="given-name"
+                  aria-describedby={errores.nombre ? 'nombre-error' : undefined}
+                  aria-invalid={!!errores.nombre}
+                  onBlur={e => validarCampo('nombre', e.target.value)}
+                  onChange={e => errores.nombre && validarCampo('nombre', e.target.value)}
+                  style={inputStyle(errores.nombre)}
+                />
+                <FieldError id="nombre-error" msg={errores.nombre} />
               </div>
               <div>
                 <label htmlFor="apellido" style={labelStyle}>Apellido</label>
-                <input id="apellido" name="apellido" type="text" autoComplete="family-name" style={inputStyle} />
+                <input id="apellido" name="apellido" type="text" autoComplete="family-name" style={inputStyle(false)} />
               </div>
             </div>
 
             <div>
               <label htmlFor="email" style={labelStyle}>Email *</label>
-              <input id="email" name="email" type="email" required autoComplete="email" style={inputStyle} />
+              <input
+                id="email" name="email" type="email" autoComplete="email"
+                aria-describedby={errores.email ? 'email-error' : undefined}
+                aria-invalid={!!errores.email}
+                onBlur={e => validarCampo('email', e.target.value)}
+                onChange={e => errores.email && validarCampo('email', e.target.value)}
+                style={inputStyle(errores.email)}
+              />
+              <FieldError id="email-error" msg={errores.email} />
             </div>
 
             <div>
-              <label htmlFor="password" style={labelStyle}>Contraseña * (mínimo 6 caracteres)</label>
-              <input id="password" name="password" type="password" required autoComplete="new-password" style={inputStyle} />
+              <label htmlFor="password" style={labelStyle}>
+                Contraseña * <span style={{ color: '#888', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(mín. 6 caracteres, letras y números)</span>
+              </label>
+              <input
+                id="password" name="password" type="password" autoComplete="new-password"
+                aria-describedby={errores.password ? 'password-error' : 'password-hint'}
+                aria-invalid={!!errores.password}
+                onBlur={e => validarCampo('password', e.target.value)}
+                onChange={e => errores.password && validarCampo('password', e.target.value)}
+                style={inputStyle(errores.password)}
+              />
+              <FieldError id="password-error" msg={errores.password} />
             </div>
 
             {state?.error && (
-              <p style={{ color: '#f44336', fontSize: '0.88rem', margin: 0, padding: '0.75rem 1rem', background: '#2a1a1a', borderRadius: '6px', border: '1px solid #5a2a2a' }}>
+              <p role="alert" style={{ color: '#f44336', fontSize: '0.88rem', margin: 0, padding: '0.75rem 1rem', background: '#2a1a1a', borderRadius: '6px', border: '1px solid #5a2a2a' }}>
                 {state.error}
               </p>
             )}
@@ -59,6 +149,7 @@ export default function RegistroPage() {
             <button
               type="submit"
               disabled={pending}
+              aria-busy={pending}
               style={{
                 width: '100%',
                 padding: '0.85rem',
@@ -86,25 +177,4 @@ export default function RegistroPage() {
       </div>
     </div>
   )
-}
-
-const labelStyle = {
-  display: 'block',
-  color: 'var(--crema)',
-  fontSize: '0.85rem',
-  marginBottom: '0.5rem',
-  textTransform: 'uppercase',
-  letterSpacing: '0.05em',
-}
-
-const inputStyle = {
-  width: '100%',
-  padding: '0.75rem 1rem',
-  background: '#1a1a1a',
-  border: '1px solid var(--gris-claro)',
-  borderRadius: '6px',
-  color: 'var(--crema)',
-  fontSize: '1rem',
-  outline: 'none',
-  boxSizing: 'border-box',
 }

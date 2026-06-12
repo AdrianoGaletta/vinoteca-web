@@ -1,9 +1,26 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { crearPedido } from '@/app/actions/pedidos'
 import Image from 'next/image'
 import Link from 'next/link'
+
+function vCheck(campo, valor) {
+  const s = valor?.trim() ?? ''
+  if (campo === 'nombre_receptor') {
+    if (!s) return 'El nombre es requerido'
+    if (s.length < 3) return 'Mínimo 3 caracteres'
+  }
+  if (campo === 'direccion_entrega') {
+    if (!s) return 'La dirección es requerida'
+    if (s.length < 5) return 'Ingresá una dirección completa'
+  }
+  if (campo === 'ciudad_entrega') {
+    if (!s) return 'La ciudad es requerida'
+    if (s.length < 2) return 'Mínimo 2 caracteres'
+  }
+  return ''
+}
 
 const inputStyle = {
   width: '100%',
@@ -30,8 +47,22 @@ const labelStyle = {
 
 export default function CheckoutForm({ items, profile, user, subtotal, costo_envio, total }) {
   const [state, action, pending] = useActionState(crearPedido, undefined)
+  const [errores, setErrores] = useState({})
 
   const nombreCompleto = [profile?.nombre, profile?.apellido].filter(Boolean).join(' ')
+
+  const CAMPOS_REQUERIDOS = ['nombre_receptor', 'direccion_entrega', 'ciudad_entrega']
+
+  function validarCampo(campo, valor) {
+    setErrores(prev => ({ ...prev, [campo]: vCheck(campo, valor) }))
+  }
+
+  function handleSubmit(e) {
+    const fd = new FormData(e.currentTarget)
+    const nuevos = Object.fromEntries(CAMPOS_REQUERIDOS.map(c => [c, vCheck(c, fd.get(c))]))
+    setErrores(nuevos)
+    if (Object.values(nuevos).some(Boolean)) e.preventDefault()
+  }
 
   return (
     <main style={{ maxWidth: '1100px', margin: '0 auto', padding: 'clamp(3rem, 6vw, 5rem) clamp(1.5rem, 4vw, 3rem)' }}>
@@ -46,7 +77,7 @@ export default function CheckoutForm({ items, profile, user, subtotal, costo_env
         </h1>
       </header>
 
-      <form action={action}>
+      <form action={action} onSubmit={handleSubmit} noValidate>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 360px', gap: '3rem', alignItems: 'start' }}>
 
           {/* FORMULARIO DE ENVÍO */}
@@ -64,10 +95,14 @@ export default function CheckoutForm({ items, profile, user, subtotal, costo_env
                   id="nombre_receptor"
                   name="nombre_receptor"
                   type="text"
-                  required
                   defaultValue={nombreCompleto}
-                  style={inputStyle}
+                  aria-describedby={errores.nombre_receptor ? 'nombre-error' : undefined}
+                  aria-invalid={!!errores.nombre_receptor}
+                  onBlur={e => validarCampo('nombre_receptor', e.target.value)}
+                  onChange={e => errores.nombre_receptor && validarCampo('nombre_receptor', e.target.value)}
+                  style={{ ...inputStyle, borderColor: errores.nombre_receptor ? '#f44336' : '#2e2e2e' }}
                 />
+                {errores.nombre_receptor && <p id="nombre-error" role="alert" style={{ color: '#f44336', fontSize: '0.75rem', marginTop: '0.3rem' }}>{errores.nombre_receptor}</p>}
               </div>
 
               <div>
@@ -76,11 +111,15 @@ export default function CheckoutForm({ items, profile, user, subtotal, costo_env
                   id="direccion_entrega"
                   name="direccion_entrega"
                   type="text"
-                  required
                   placeholder="Calle y número"
                   defaultValue={profile?.direccion ?? ''}
-                  style={inputStyle}
+                  aria-describedby={errores.direccion_entrega ? 'dir-error' : undefined}
+                  aria-invalid={!!errores.direccion_entrega}
+                  onBlur={e => validarCampo('direccion_entrega', e.target.value)}
+                  onChange={e => errores.direccion_entrega && validarCampo('direccion_entrega', e.target.value)}
+                  style={{ ...inputStyle, borderColor: errores.direccion_entrega ? '#f44336' : '#2e2e2e' }}
                 />
+                {errores.direccion_entrega && <p id="dir-error" role="alert" style={{ color: '#f44336', fontSize: '0.75rem', marginTop: '0.3rem' }}>{errores.direccion_entrega}</p>}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -90,10 +129,14 @@ export default function CheckoutForm({ items, profile, user, subtotal, costo_env
                     id="ciudad_entrega"
                     name="ciudad_entrega"
                     type="text"
-                    required
                     defaultValue={profile?.ciudad ?? ''}
-                    style={inputStyle}
+                    aria-describedby={errores.ciudad_entrega ? 'ciudad-error' : undefined}
+                    aria-invalid={!!errores.ciudad_entrega}
+                    onBlur={e => validarCampo('ciudad_entrega', e.target.value)}
+                    onChange={e => errores.ciudad_entrega && validarCampo('ciudad_entrega', e.target.value)}
+                    style={{ ...inputStyle, borderColor: errores.ciudad_entrega ? '#f44336' : '#2e2e2e' }}
                   />
+                  {errores.ciudad_entrega && <p id="ciudad-error" role="alert" style={{ color: '#f44336', fontSize: '0.75rem', marginTop: '0.3rem' }}>{errores.ciudad_entrega}</p>}
                 </div>
                 <div>
                   <label htmlFor="provincia_entrega" style={labelStyle}>Provincia</label>
@@ -120,20 +163,26 @@ export default function CheckoutForm({ items, profile, user, subtotal, costo_env
 
             </div>
 
-            {/* MÉTODO DE PAGO — placeholder */}
+            {/* MÉTODO DE PAGO — Mercado Pago */}
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--crema)', fontWeight: 400, margin: '2.5rem 0 1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <span style={{ color: 'var(--dorado)', fontFamily: 'var(--font-editorial)', fontSize: '1.5rem', fontWeight: 300 }}>02</span>
               Método de pago
             </h2>
 
-            <div style={{ background: '#111', border: '1px solid #2e2e2e', borderRadius: '2px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: '2px solid var(--dorado)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--dorado)' }} />
+            <div style={{ background: '#111', border: '1px solid rgba(0,158,227,0.35)', borderRadius: '2px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: '2px solid #009ee3', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#009ee3' }} />
               </div>
               <div>
-                <p style={{ color: 'var(--crema)', fontSize: '0.88rem' }}>Transferencia bancaria</p>
-                <p style={{ color: 'var(--crema-apagada)', fontSize: '0.75rem', marginTop: '0.2rem' }}>Te enviaremos los datos por email al confirmar</p>
+                <p style={{ color: 'var(--crema)', fontSize: '0.88rem', fontWeight: 500 }}>Mercado Pago</p>
+                <p style={{ color: 'var(--crema-apagada)', fontSize: '0.75rem', marginTop: '0.2rem' }}>
+                  Tarjeta de crédito, débito, efectivo y más. Pago 100% seguro.
+                </p>
               </div>
+              <svg role="img" aria-label="Mercado Pago" style={{ marginLeft: 'auto', flexShrink: 0 }} width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="14" cy="14" r="14" fill="#009ee3"/>
+                <path d="M7 14.5l4.2 4 9.8-9" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </div>
 
             {state?.error && (
@@ -209,7 +258,7 @@ export default function CheckoutForm({ items, profile, user, subtotal, costo_env
                 marginBottom: '1rem',
               }}
             >
-              {pending ? 'Confirmando pedido...' : 'Confirmar pedido'}
+              {pending ? 'Procesando...' : 'Confirmar y pagar con Mercado Pago'}
             </button>
 
             <Link href="/carrito" style={{ display: 'block', textAlign: 'center', color: 'var(--crema-apagada)', fontSize: '0.72rem', letterSpacing: '0.08em', opacity: 0.6 }}>
