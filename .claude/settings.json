@@ -20,7 +20,8 @@
       "Bash(git push *)",
       "Bash(npm i *)",
       "Bash(vercel --version)",
-      "Bash(vercel logout *)"
+      "Bash(vercel logout *)",
+      "Bash(git check-ignore *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\totog\\Desktop\\Carpetas\\vinoteca-web\\app\\api\\productos"
