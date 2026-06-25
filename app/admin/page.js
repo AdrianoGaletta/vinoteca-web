@@ -352,6 +352,9 @@ export default function Admin() {
             <Link href="/" style={{ ...s.btnSecundario, textDecoration: 'none', display: 'inline-block' }}>
               ← Volver al sitio
             </Link>
+            <Link href="/admin/pedidos" style={{ ...s.btnSecundario, textDecoration: 'none', display: 'inline-block' }}>
+              Ver pedidos
+            </Link>
             <button style={s.btnPrimario} onClick={abrirNuevo}>
               + Nuevo producto
             </button>
