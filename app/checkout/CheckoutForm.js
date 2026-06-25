@@ -258,7 +258,7 @@ export default function CheckoutForm({ items, profile, user, subtotal, costo_env
                 marginBottom: '1rem',
               }}
             >
-              {pending ? 'Procesando...' : 'Confirmar y pagar con Mercado Pago'}
+              {pending ? 'Procesando...' : 'Continuar al pago'}
             </button>
 
             <Link href="/carrito" style={{ display: 'block', textAlign: 'center', color: 'var(--crema-apagada)', fontSize: '0.72rem', letterSpacing: '0.08em', opacity: 0.6 }}>

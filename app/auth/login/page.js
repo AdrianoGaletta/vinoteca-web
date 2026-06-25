@@ -1,9 +1,9 @@
 'use client'
 
-import { useActionState, Suspense, useState, useEffect } from 'react'
-import { login } from '@/app/actions/auth'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 function validarEmail(email) {
   if (!email?.trim()) return 'El email es requerido'
@@ -31,35 +31,57 @@ const inputBase = {
 }
 
 function LoginForm() {
-  const [state, action, pending] = useActionState(login, undefined)
   const searchParams = useSearchParams()
   const reset = searchParams.get('reset')
+  const redirectTo = searchParams.get('redirect') || '/mi-cuenta'
   const router = useRouter()
 
   const [errores, setErrores] = useState({})
-
-  useEffect(() => {
-    if (state?.success) {
-      router.refresh()
-      router.push('/mi-cuenta')
-    }
-  }, [state?.success, router])
+  const [errorGeneral, setErrorGeneral] = useState('')
+  const [pending, setPending] = useState(false)
 
   function validarCampo(campo, valor) {
     const fn = campo === 'email' ? validarEmail : validarPassword
     setErrores(prev => ({ ...prev, [campo]: fn(valor) }))
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setErrorGeneral('')
+
     const fd = new FormData(e.currentTarget)
+    const email = fd.get('email')
+    const password = fd.get('password')
+
     const nuevoErrores = {
-      email:    validarEmail(fd.get('email')),
-      password: validarPassword(fd.get('password')),
+      email:    validarEmail(email),
+      password: validarPassword(password),
     }
     setErrores(nuevoErrores)
-    if (Object.values(nuevoErrores).some(Boolean)) {
-      e.preventDefault()
+    if (Object.values(nuevoErrores).some(Boolean)) return
+
+    setPending(true)
+
+    // Login del lado del cliente: el cliente de Supabase setea la sesión
+    // y dispara onAuthStateChange de inmediato → la sesión se reconoce al
+    // instante en toda la app (navbar, carrito, checkout).
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+
+    if (error) {
+      setPending(false)
+      if (error.message.includes('Email not confirmed')) {
+        setErrorGeneral('Tenés que confirmar tu email antes de ingresar. Revisá tu bandeja de entrada.')
+      } else {
+        setErrorGeneral('Email o contraseña incorrectos.')
+      }
+      return
     }
+
+    // Refresca los Server Components (que ahora leen la cookie de sesión)
+    // y navega al destino.
+    router.refresh()
+    router.push(redirectTo)
   }
 
   return (
@@ -83,7 +105,7 @@ function LoginForm() {
           </div>
         )}
 
-        <form action={action} onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+        <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
 
           <div>
             <label htmlFor="email" style={{ display: 'block', color: 'var(--crema)', fontSize: '0.85rem', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -134,9 +156,9 @@ function LoginForm() {
             </div>
           </div>
 
-          {state?.error && (
+          {errorGeneral && (
             <p role="alert" style={{ color: '#f44336', fontSize: '0.88rem', margin: 0, padding: '0.75rem 1rem', background: '#2a1a1a', borderRadius: '6px', border: '1px solid #5a2a2a' }}>
-              {state.error}
+              {errorGeneral}
             </p>
           )}
 

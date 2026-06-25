@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import PagarMercadoPago from './PagarMercadoPago'
 
-export const metadata = { title: 'Pedido confirmado | Cava del Plata' }
+export const metadata = { title: 'Pedido | Cava del Plata' }
 
 const estadoColor = {
   pendiente:       '#c9a84c',
@@ -25,12 +25,6 @@ const estadoLabel = {
   cancelado:       'Cancelado',
 }
 
-const pagoMensaje = {
-  aprobado: { texto: '¡Pago aprobado! Tu pedido está confirmado.', color: '#4caf50', bg: '#0a1a0a', border: '#1a3a1a' },
-  pendiente: { texto: 'Tu pago está siendo procesado. Te avisaremos cuando se confirme.', color: '#c9a84c', bg: '#1a150a', border: '#3a2a0a' },
-  fallido:   { texto: 'El pago no pudo procesarse. Podés intentar de nuevo.', color: '#f44336', bg: '#1a0a0a', border: '#3a1a1a' },
-}
-
 export default async function PedidoPage({ params, searchParams }) {
   const { id } = await params
   const { pago } = await searchParams
@@ -39,6 +33,7 @@ export default async function PedidoPage({ params, searchParams }) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
+  // Si vuelve con pago aprobado, confirmar el pedido (idempotente)
   if (pago === 'aprobado') {
     await supabase
       .from('pedidos')
@@ -78,47 +73,63 @@ export default async function PedidoPage({ params, searchParams }) {
   return (
     <main style={{ maxWidth: '760px', margin: '0 auto', padding: 'clamp(3rem, 6vw, 5rem) clamp(1.5rem, 4vw, 3rem)' }}>
 
-      {/* BANNER ESTADO PAGO */}
-      {pago && pagoMensaje[pago] && (
-        <div role="alert" style={{
-          background: pagoMensaje[pago].bg,
-          border: `1px solid ${pagoMensaje[pago].border}`,
-          borderRadius: '2px',
-          padding: '1rem 1.5rem',
-          marginBottom: '2rem',
-          color: pagoMensaje[pago].color,
-          fontSize: '0.88rem',
-          lineHeight: 1.6,
-        }}>
-          {pagoMensaje[pago].texto}
+      {/* ENCABEZADO — distinto según esté pagado o pendiente */}
+      {isPendiente ? (
+        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+          <div style={{
+            width: '64px', height: '64px',
+            borderRadius: '50%',
+            border: `1px solid ${color}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 1.5rem',
+            color,
+          }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="5" width="20" height="14" rx="2"/>
+              <line x1="2" y1="10" x2="22" y2="10"/>
+            </svg>
+          </div>
+          <p style={{ color: 'var(--dorado)', fontSize: '0.65rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
+            — Último paso
+          </p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 2.8rem)', color: 'var(--crema)', fontWeight: 400, marginBottom: '0.75rem' }}>
+            Pagá tu pedido
+          </h1>
+          <p style={{ fontFamily: 'var(--font-editorial)', color: 'var(--crema-apagada)', fontSize: '1rem', fontWeight: 300, lineHeight: 1.7 }}>
+            Reservamos tu pedido. Completá el pago con tarjeta para confirmarlo.
+          </p>
+        </div>
+      ) : (
+        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+          <div style={{
+            width: '64px', height: '64px',
+            borderRadius: '50%',
+            border: `1px solid ${color}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 1.5rem',
+            color,
+            fontSize: '1.5rem',
+          }}>
+            {estadoDisplay === 'cancelado' ? '✕' : '✓'}
+          </div>
+          <p style={{ color: 'var(--dorado)', fontSize: '0.65rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
+            — Pedido confirmado
+          </p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 2.8rem)', color: 'var(--crema)', fontWeight: 400, marginBottom: '0.75rem' }}>
+            ¡Gracias por tu compra!
+          </h1>
+          <p style={{ fontFamily: 'var(--font-editorial)', color: 'var(--crema-apagada)', fontSize: '1rem', fontWeight: 300, lineHeight: 1.7 }}>
+            Tu pago fue procesado correctamente. Comenzamos a preparar tu pedido.
+          </p>
         </div>
       )}
 
-      {/* CONFIRMACIÓN */}
-      <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-        <div style={{
-          width: '64px', height: '64px',
-          borderRadius: '50%',
-          border: `1px solid ${color}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          margin: '0 auto 1.5rem',
-          color,
-          fontSize: '1.5rem',
-        }}>
-          {pago === 'fallido' ? '✕' : '✓'}
+      {/* FORMULARIO DE PAGO — arriba y prominente cuando está pendiente */}
+      {isPendiente && (
+        <div style={{ background: 'var(--gris)', border: `1px solid ${color}40`, borderRadius: '2px', padding: 'clamp(1.5rem, 4vw, 2.5rem)', marginBottom: '2.5rem' }}>
+          <PagarMercadoPago pedidoId={id} total={pedido.total} />
         </div>
-        <p style={{ color: 'var(--dorado)', fontSize: '0.65rem', letterSpacing: '0.4em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
-          — Pedido recibido
-        </p>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 2.8rem)', color: 'var(--crema)', fontWeight: 400, marginBottom: '0.75rem' }}>
-          {pago === 'aprobado' ? '¡Pago confirmado!' : '¡Gracias por tu compra!'}
-        </h1>
-        <p style={{ fontFamily: 'var(--font-editorial)', color: 'var(--crema-apagada)', fontSize: '1rem', fontWeight: 300, lineHeight: 1.7 }}>
-          {pago === 'aprobado'
-            ? 'Tu pago fue procesado correctamente. Comenzamos a preparar tu pedido.'
-            : 'Recibimos tu pedido. Completá el pago para que lo procesemos.'}
-        </p>
-      </div>
+      )}
 
       {/* DETALLE DEL PEDIDO */}
       <div style={{ background: 'var(--gris)', border: '1px solid rgba(201,168,76,0.12)', borderRadius: '2px', overflow: 'hidden' }}>
@@ -226,9 +237,6 @@ export default async function PedidoPage({ params, searchParams }) {
           Seguir comprando
         </Link>
       </div>
-
-      {/* PAGO CON MERCADO PAGO — solo cuando el pedido no está pagado */}
-      {isPendiente && <PagarMercadoPago pedidoId={id} total={pedido.total} />}
 
     </main>
   )

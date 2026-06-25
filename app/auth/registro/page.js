@@ -1,8 +1,9 @@
 'use client'
 
-import { useActionState, useState } from 'react'
-import { registro } from '@/app/actions/auth'
+import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 // ── Validadores ──────────────────────────────────────────
 function v(campo, valor) {
@@ -55,19 +56,63 @@ function FieldError({ id, msg }) {
 }
 
 export default function RegistroPage() {
-  const [state, action, pending] = useActionState(registro, undefined)
+  const router = useRouter()
   const [errores, setErrores] = useState({})
+  const [errorGeneral, setErrorGeneral] = useState('')
+  const [success, setSuccess] = useState('')
+  const [pending, setPending] = useState(false)
 
   function validarCampo(campo, valor) {
     setErrores(prev => ({ ...prev, [campo]: v(campo, valor) }))
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setErrorGeneral('')
+
     const fd = new FormData(e.currentTarget)
-    const campos = ['nombre', 'email', 'password']
-    const nuevoErrores = Object.fromEntries(campos.map(c => [c, v(c, fd.get(c))]))
+    const nombre = fd.get('nombre')
+    const apellido = fd.get('apellido')
+    const email = fd.get('email')
+    const password = fd.get('password')
+
+    const nuevoErrores = Object.fromEntries(['nombre', 'email', 'password'].map(c => [c, v(c, fd.get(c))]))
     setErrores(nuevoErrores)
-    if (Object.values(nuevoErrores).some(Boolean)) e.preventDefault()
+    if (Object.values(nuevoErrores).some(Boolean)) return
+
+    setPending(true)
+
+    const supabase = createClient()
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { nombre, apellido } },
+    })
+
+    if (error) {
+      setPending(false)
+      if (error.message.includes('already registered')) {
+        setErrorGeneral('Este email ya está registrado.')
+      } else {
+        setErrorGeneral('Error al crear la cuenta. Intentá de nuevo.')
+      }
+      return
+    }
+
+    // Si requiere confirmación por email, no hay sesión todavía
+    if (data.user && !data.session) {
+      setPending(false)
+      setSuccess('Te enviamos un email de confirmación. Revisá tu bandeja de entrada.')
+      return
+    }
+
+    // Sesión activa: guardar perfil y entrar
+    if (data.user) {
+      await supabase.from('profiles').upsert({ id: data.user.id, nombre, apellido: apellido || null })
+    }
+
+    router.refresh()
+    router.push('/mi-cuenta')
   }
 
   return (
@@ -85,13 +130,13 @@ export default function RegistroPage() {
           </p>
         </div>
 
-        {state?.success ? (
+        {success ? (
           <div role="alert" style={{ background: '#1a2e1a', border: '1px solid #2d5a2d', borderRadius: '8px', padding: '1.5rem', color: '#4caf50', textAlign: 'center' }}>
             <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>¡Cuenta creada!</p>
-            <p style={{ fontSize: '0.9rem' }}>{state.success}</p>
+            <p style={{ fontSize: '0.9rem' }}>{success}</p>
           </div>
         ) : (
-          <form action={action} onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+          <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div>
@@ -140,9 +185,9 @@ export default function RegistroPage() {
               <FieldError id="password-error" msg={errores.password} />
             </div>
 
-            {state?.error && (
+            {errorGeneral && (
               <p role="alert" style={{ color: '#f44336', fontSize: '0.88rem', margin: 0, padding: '0.75rem 1rem', background: '#2a1a1a', borderRadius: '6px', border: '1px solid #5a2a2a' }}>
-                {state.error}
+                {errorGeneral}
               </p>
             )}
 
