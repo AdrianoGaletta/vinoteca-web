@@ -35,6 +35,17 @@ export async function POST(request) {
     return NextResponse.json({ error: 'MP no configurado' }, { status: 503 })
   }
 
+  // El email del pagador debe ser un email común. Los @testuser.com de MP
+  // y el email del propio vendedor son rechazados ("Payer email forbidden").
+  const emailBrick = paymentData.payer?.email
+  const emailUsuario = user.email
+  const esEmailValido = (e) => e && !e.endsWith('@testuser.com')
+  const payerEmail = esEmailValido(emailBrick)
+    ? emailBrick
+    : esEmailValido(emailUsuario)
+      ? emailUsuario
+      : 'comprador@cavadelplata.com'
+
   try {
     const mpClient = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN })
     const payment = await new Payment(mpClient).create({
@@ -46,7 +57,7 @@ export async function POST(request) {
         installments:         paymentData.installments,
         description:          'Cava del Plata',
         external_reference:   pedido_id,
-        payer:                paymentData.payer,
+        payer:                { ...paymentData.payer, email: payerEmail },
       },
     })
 
