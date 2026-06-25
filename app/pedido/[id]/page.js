@@ -228,7 +228,7 @@ export default async function PedidoPage({ params, searchParams }) {
       </div>
 
       {/* PAGO CON MERCADO PAGO — solo cuando el pedido no está pagado */}
-      {isPendiente && <PagarMercadoPago pedidoId={id} />}
+      {isPendiente && <PagarMercadoPago pedidoId={id} total={pedido.total} />}
 
     </main>
   )
