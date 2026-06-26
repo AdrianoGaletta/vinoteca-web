@@ -30,7 +30,11 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          MP_ACCESS_TOKEN: ${{ secrets.MP_ACCESS_TOKEN }}
-          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+          # El build solo necesita que estas variables no estén vacías para
+          # instanciar el cliente de Supabase (no se conecta en tiempo de build).
+          # Si los Secrets del repo están definidos se usan; si no, placeholders
+          # que permiten compilar. Los valores reales viven en Vercel (runtime).
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
+          MP_ACCESS_TOKEN: ${{ secrets.MP_ACCESS_TOKEN || 'placeholder-token' }}
+          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000' }}
