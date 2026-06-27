@@ -167,11 +167,11 @@ export default function PagarMercadoPago({ pedidoId, total }) {
         </div>
       )}
 
-      {/* Link de simulación — siempre visible en sandbox */}
-      {fase !== 'sin-clave' && (
+      {/* Simulación — solo como respaldo si el formulario de MP no carga */}
+      {fase === 'error' && (
         <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
           <p style={{ color: 'var(--crema-apagada)', fontSize: '0.68rem', marginBottom: '0.5rem', opacity: 0.35 }}>
-            — entorno de pruebas —
+            — ¿problemas con el formulario? —
           </p>
           <Link href={`/pedido/${pedidoId}?pago=aprobado`} style={{
             display: 'inline-block',

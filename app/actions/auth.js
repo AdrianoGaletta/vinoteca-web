@@ -3,72 +3,15 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
-export async function login(prevState, formData) {
-  const supabase = await createClient()
+// El login y el registro se resuelven del lado del cliente (ver
+// app/auth/login y app/auth/registro) para que la sesión se reconozca al
+// instante en toda la app. Acá quedan las acciones que sí necesitan el server.
 
-  const email = formData.get('email')
-  const password = formData.get('password')
-
-  if (!email || !password) {
-    return { error: 'Completá todos los campos.' }
-  }
-
-  const { error } = await supabase.auth.signInWithPassword({ email, password })
-
-  if (error) {
-    if (error.message.includes('Email not confirmed')) {
-      return { error: 'Tenés que confirmar tu email antes de ingresar. Revisá tu bandeja de entrada.' }
-    }
-    return { error: 'Email o contraseña incorrectos.' }
-  }
-
-  return { success: true }
-}
-
-export async function registro(prevState, formData) {
-  const supabase = await createClient()
-
-  const email = formData.get('email')
-  const password = formData.get('password')
-  const nombre = formData.get('nombre')
-  const apellido = formData.get('apellido')
-
-  if (!email || !password || !nombre) {
-    return { error: 'Completá todos los campos obligatorios.' }
-  }
-
-  if (password.length < 6) {
-    return { error: 'La contraseña debe tener al menos 6 caracteres.' }
-  }
-
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { nombre, apellido },
-    },
-  })
-
-  if (error) {
-    if (error.message.includes('already registered')) {
-      return { error: 'Este email ya está registrado.' }
-    }
-    return { error: 'Error al crear la cuenta. Intentá de nuevo.' }
-  }
-
-  // Si el email necesita confirmación
-  if (data.user && !data.session) {
-    return { success: 'Te enviamos un email de confirmación. Revisá tu bandeja de entrada.' }
-  }
-
-  // Guardar nombre/apellido en profiles (upsert por si el trigger todavía no corrió)
-  if (data.user) {
-    await supabase
-      .from('profiles')
-      .upsert({ id: data.user.id, nombre, apellido: apellido || null })
-  }
-
-  redirect('/mi-cuenta')
+function siteUrl() {
+  const url = process.env.NEXT_PUBLIC_SITE_URL || ''
+  return url.startsWith('https://') && !url.includes('localhost')
+    ? url
+    : 'https://vinoteca-web.vercel.app'
 }
 
 export async function recuperarContrasena(prevState, formData) {
@@ -81,7 +24,7 @@ export async function recuperarContrasena(prevState, formData) {
   }
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/nueva-contrasena`,
+    redirectTo: `${siteUrl()}/auth/nueva-contrasena`,
   })
 
   if (error) {
