@@ -38,19 +38,22 @@ export default async function PedidoPage({ params, searchParams }) {
   // (no confiamos en la URL) y marcamos el pedido pagado con permisos de
   // servidor (service-role), de forma confiable.
   const mpPaymentId = sp.payment_id || sp.collection_id
+  console.log('[pedido] return params:', JSON.stringify(sp))
   if (mpPaymentId && process.env.MP_ACCESS_TOKEN) {
     try {
       const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN })
       const payment = await new Payment(client).get({ id: mpPaymentId })
+      console.log('[pedido] payment:', payment.id, '| status:', payment.status, '| ext_ref:', payment.external_reference, '| esperado:', id)
       if (String(payment.external_reference) === String(id) && payment.status === 'approved') {
         const admin = createAdminClient()
-        await admin.from('pedidos').update({ estado: 'pagado' }).eq('id', id)
-        await admin.from('transacciones')
+        const { error: e1 } = await admin.from('pedidos').update({ estado: 'pagado' }).eq('id', id)
+        const { error: e2 } = await admin.from('transacciones')
           .update({ estado: 'aprobado', monto: payment.transaction_amount })
           .eq('pedido_id', id)
+        console.log('[pedido] update errors -> pedidos:', e1?.message ?? 'ok', '| transacciones:', e2?.message ?? 'ok')
       }
     } catch (e) {
-      console.error('Verificación de pago MP falló:', e.message)
+      console.error('[pedido] Verificación de pago MP falló:', e.message)
     }
   }
 
