@@ -96,6 +96,23 @@ export default function PagarMercadoPago({ pedidoId, total }) {
         — Pagar con tarjeta de crédito o débito —
       </p>
 
+      {/* Aviso de entorno de prueba con la tarjeta de test */}
+      {fase !== 'sin-clave' && (
+        <div style={{ background: 'rgba(0,158,227,0.07)', border: '1px solid rgba(0,158,227,0.25)', borderRadius: '2px', padding: '0.9rem 1.1rem', marginBottom: '1.25rem' }}>
+          <p style={{ color: '#4aa8d8', fontSize: '0.72rem', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.5rem', fontWeight: 600 }}>
+            Entorno de prueba — usá esta tarjeta de test
+          </p>
+          <div style={{ color: 'var(--crema-apagada)', fontSize: '0.78rem', lineHeight: 1.7, fontFamily: 'monospace' }}>
+            <div>N°: <span style={{ color: 'var(--crema)' }}>5031 7557 3453 0604</span></div>
+            <div>Venc: <span style={{ color: 'var(--crema)' }}>11/30</span> · CVV: <span style={{ color: 'var(--crema)' }}>123</span></div>
+            <div>Titular: <span style={{ color: 'var(--crema)' }}>APRO</span> · DNI: <span style={{ color: 'var(--crema)' }}>12345678</span></div>
+          </div>
+          <p style={{ color: 'var(--crema-apagada)', fontSize: '0.68rem', marginTop: '0.5rem', opacity: 0.7 }}>
+            No uses una tarjeta real: el sitio está en modo de prueba de Mercado Pago.
+          </p>
+        </div>
+      )}
+
       {fase === 'cargando' && (
         <p style={{ color: 'var(--crema-apagada)', fontSize: '0.78rem', opacity: 0.5, textAlign: 'center', marginBottom: '1rem' }}>
           Cargando formulario de pago...

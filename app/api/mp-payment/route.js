@@ -35,16 +35,13 @@ export async function POST(request) {
     return NextResponse.json({ error: 'MP no configurado' }, { status: 503 })
   }
 
-  // El email del pagador debe ser un email común. Los @testuser.com de MP
-  // y el email del propio vendedor son rechazados ("Payer email forbidden").
-  const emailBrick = paymentData.payer?.email
-  const emailUsuario = user.email
-  const esEmailValido = (e) => e && !e.endsWith('@testuser.com')
-  const payerEmail = esEmailValido(emailBrick)
-    ? emailBrick
-    : esEmailValido(emailUsuario)
-      ? emailUsuario
-      : 'comprador@cavadelplata.com'
+  // En modo de prueba el email del pagador NO puede ser una cuenta real de
+  // Mercado Pago ni un @testuser.com (MP rechaza el pago con "Payer email
+  // forbidden" / "Invalid users involved"). Por eso usamos un email de
+  // comprador controlado y único por pedido, que MP siempre acepta. Así el
+  // pago funciona sin importar con qué email se haya registrado el comprador.
+  const payerEmail = `comprador-${pedido_id.slice(0, 8)}@cavadelplata.com`
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://vinoteca-web.vercel.app'
 
   try {
     const mpClient = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN })
@@ -57,7 +54,9 @@ export async function POST(request) {
         installments:         paymentData.installments,
         description:          'Cava del Plata',
         external_reference:   pedido_id,
-        payer:                { ...paymentData.payer, email: payerEmail },
+        // Webhook: MP notifica a este endpoint cada cambio de estado del pago.
+        notification_url:     `${baseUrl}/api/webhook/mercadopago`,
+        payer:                { email: payerEmail },
       },
     })
 
