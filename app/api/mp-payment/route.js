@@ -41,7 +41,14 @@ export async function POST(request) {
   // comprador controlado y único por pedido, que MP siempre acepta. Así el
   // pago funciona sin importar con qué email se haya registrado el comprador.
   const payerEmail = `comprador-${pedido_id.slice(0, 8)}@cavadelplata.com`
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://vinoteca-web.vercel.app'
+
+  // MP exige que notification_url sea una URL pública válida (rechaza localhost
+  // y valores no-https). Usamos NEXT_PUBLIC_SITE_URL solo si es https público;
+  // si no, caemos al dominio de producción.
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || ''
+  const baseUrl = siteUrl.startsWith('https://') && !siteUrl.includes('localhost')
+    ? siteUrl
+    : 'https://vinoteca-web.vercel.app'
 
   try {
     const mpClient = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN })
