@@ -1,5 +1,5 @@
 import { MercadoPagoConfig, Payment } from 'mercadopago'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 
 const estadoMap = {
@@ -30,7 +30,7 @@ export async function POST(request) {
     if (!pedidoId) return NextResponse.json({ received: true })
 
     const estados = estadoMap[payment.status] ?? estadoMap.pending
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     await supabase
       .from('transacciones')
