@@ -77,7 +77,7 @@ export default function CheckoutForm({ items, profile, user, subtotal, costo_env
       </header>
 
       <form action={action} onSubmit={handleSubmit} noValidate>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 360px', gap: '3rem', alignItems: 'start' }}>
+        <div className="checkout-grid">
 
           {/* FORMULARIO DE ENVÍO */}
           <section>
