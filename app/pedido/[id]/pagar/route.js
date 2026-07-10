@@ -63,11 +63,13 @@ export async function GET(request, { params }) {
       },
     })
 
-    const url = pref.sandbox_init_point || pref.init_point
-    if (!url) {
+    // SIEMPRE init_point: el sandbox_init_point está deprecado por Mercado
+    // Pago y rechaza los pagos aunque el titular de prueba sea APRO. Con
+    // credenciales de cuenta de prueba, init_point ES el checkout de test.
+    if (!pref.init_point) {
       return NextResponse.redirect(new URL(`/pedido/${id}?pago=error`, request.url))
     }
-    return NextResponse.redirect(url)
+    return NextResponse.redirect(pref.init_point)
   } catch (e) {
     console.error('MP preference error:', e.message)
     return NextResponse.redirect(new URL(`/pedido/${id}?pago=error`, request.url))
