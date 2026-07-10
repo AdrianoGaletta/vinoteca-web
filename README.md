@@ -9,9 +9,9 @@ Aplicación web full-stack para una vinoteca boutique argentina. Desarrollada co
 | Capa | Tecnología |
 |---|---|
 | Framework | Next.js 16 (App Router) |
-| UI | React 19 — inline styles con CSS variables |
-| Base de datos | Supabase (PostgreSQL) |
-| Autenticación | Supabase Auth (email + password) |
+| UI | React 19 — CSS variables + breakpoints responsive |
+| Base de datos | Supabase (PostgreSQL + RLS) |
+| Autenticación | Supabase Auth (email + password, roles vía `app_metadata`) |
 | Pagos | Mercado Pago Checkout Pro |
 | Despliegue | Vercel |
 | CI/CD | GitHub Actions |
@@ -20,14 +20,46 @@ Aplicación web full-stack para una vinoteca boutique argentina. Desarrollada co
 
 ## Funcionalidades
 
-- **Catálogo** con filtros por varietal, carga desde Supabase
+- **Catálogo** con filtros por varietal, **servido por la API interna** (`/api/productos`)
 - **Detalle de vino** con selector de cantidad y agregar al carrito
 - **Carrito** persistido en localStorage (anónimo) y en Supabase (autenticado), con sincronización automática al iniciar sesión
 - **Autenticación** completa: registro, login, recuperación de contraseña
-- **Checkout** con validación client-side y server-side, integración con Mercado Pago Checkout Pro
+- **Checkout** con validación de contenido client-side **y** server-side, integración con Mercado Pago Checkout Pro
 - **Webhooks** de Mercado Pago para actualización automática del estado de pago
-- **Panel de administración** (`/admin`) con CRUD completo de productos
-- **API REST interna** en `/api/productos` y `/api/checkout`
+- **Panel de administración** (`/admin`) **protegido por login + rol admin**, con CRUD de productos y **gestión de pedidos/ventas**
+- **API REST interna** en `/api/productos` con escrituras protegidas por rol
+
+---
+
+## Seguridad
+
+### Panel de administración
+
+`/admin` exige sesión iniciada **con rol de administrador**, verificado en dos capas:
+
+1. **`proxy.js`** (middleware): corta el request antes de renderizar. Sin sesión redirige a `/auth/login?redirect=/admin`; con sesión sin rol admin redirige al inicio.
+2. **`app/admin/layout.js`**: repite la verificación server-side para todas las páginas del panel.
+
+El rol vive en `app_metadata` de Supabase Auth, que **solo puede modificarse desde el servidor** — un usuario no puede autoasignarse admin.
+
+### Base de datos (RLS)
+
+- `productos`: lectura pública solo de activos; escritura solo admin (política `es_admin()` sobre el JWT).
+- `pedidos` / `transacciones` / `carritos`: cada usuario ve solo lo suyo; los admins ven todo.
+- Las operaciones privilegiadas del servidor (webhook, panel de pedidos, stock) usan la clave *service-role*, que nunca llega al navegador.
+
+### Crear un administrador
+
+1. Correr `supabase-migration.sql` en el SQL Editor de Supabase (una sola vez).
+2. Para promover otra cuenta: `Authentication → Users → Add user` (o registrarse en la web) y luego:
+
+```sql
+update auth.users
+set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role": "admin"}'::jsonb
+where email = 'email-del-admin@ejemplo.com';
+```
+
+3. Cerrar sesión y volver a entrar para que el token incluya el rol.
 
 ---
 
@@ -39,8 +71,9 @@ Crear `.env.local` en la raíz del proyecto:
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
+SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key   # solo servidor: webhook, panel admin
 
-# Mercado Pago
+# Mercado Pago (credenciales de una CUENTA DE PRUEBA para testear)
 MP_ACCESS_TOKEN=APP_USR-tu-access-token
 
 # URL del sitio (para back_urls de MP y webhooks)
@@ -51,92 +84,12 @@ Para obtener credenciales de Mercado Pago: [developers.mercadopago.com](https://
 
 ---
 
-## Esquema de base de datos (Supabase)
+## Base de datos (Supabase)
 
-```sql
--- Productos
-create table productos (
-  id          uuid primary key default gen_random_uuid(),
-  nombre      text not null,
-  bodega      text not null,
-  varietal    text not null,
-  anio        integer,
-  descripcion text,
-  precio      numeric not null,
-  imagen      text,
-  stock       integer default 0,
-  destacado   boolean default false,
-  activo      boolean default true,
-  slug        text unique not null,
-  created_at  timestamptz default now()
-);
+- **`supabase-schema.sql`** — esquema completo para una instalación desde cero: tablas (`productos`, `carritos`, `carrito_items`, `pedidos`, `pedido_items`, `transacciones`, `profiles`), políticas RLS, triggers y datos iniciales.
+- **`supabase-migration.sql`** — migración para bases ya creadas: agrega el estado `'pagado'` al constraint de `pedidos`, la función `es_admin()`, las políticas de admin y promueve la cuenta de administrador.
 
--- Carritos
-create table carritos (
-  id         uuid primary key default gen_random_uuid(),
-  usuario_id uuid references auth.users,
-  estado     text default 'activo',
-  created_at timestamptz default now()
-);
-
--- Items del carrito
-create table carrito_items (
-  id              uuid primary key default gen_random_uuid(),
-  carrito_id      uuid references carritos,
-  producto_id     uuid references productos,
-  cantidad        integer not null,
-  precio_unitario numeric not null,
-  unique(carrito_id, producto_id)
-);
-
--- Pedidos
-create table pedidos (
-  id                  uuid primary key default gen_random_uuid(),
-  usuario_id          uuid references auth.users,
-  estado              text default 'pendiente',
-  subtotal            numeric,
-  costo_envio         numeric,
-  total               numeric,
-  nombre_receptor     text,
-  direccion_entrega   text,
-  ciudad_entrega      text,
-  provincia_entrega   text,
-  notas               text,
-  created_at          timestamptz default now()
-);
-
--- Items del pedido
-create table pedido_items (
-  id              uuid primary key default gen_random_uuid(),
-  pedido_id       uuid references pedidos,
-  producto_id     uuid references productos,
-  nombre_producto text,
-  bodega_producto text,
-  cantidad        integer,
-  precio_unitario numeric,
-  subtotal        numeric generated always as (cantidad * precio_unitario) stored
-);
-
--- Transacciones
-create table transacciones (
-  id         uuid primary key default gen_random_uuid(),
-  pedido_id  uuid references pedidos,
-  estado     text default 'pendiente',
-  monto      numeric,
-  moneda     text default 'ARS',
-  created_at timestamptz default now()
-);
-
--- Perfiles de usuario
-create table profiles (
-  id        uuid primary key references auth.users,
-  nombre    text,
-  apellido  text,
-  direccion text,
-  ciudad    text,
-  provincia text
-);
-```
+Ambos se corren en el **SQL Editor** del proyecto de Supabase.
 
 ---
 
@@ -144,17 +97,19 @@ create table profiles (
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/tu-usuario/vinoteca-web.git
+git clone https://github.com/AdrianoGaletta/vinoteca-web.git
 cd vinoteca-web
 
 # 2. Instalar dependencias
 npm install
 
 # 3. Configurar variables de entorno
-cp .env.example .env.local
-# Editar .env.local con tus credenciales
+# Crear .env.local con las variables de la sección anterior
 
-# 4. Iniciar el servidor de desarrollo
+# 4. Crear el esquema en Supabase
+# Correr supabase-schema.sql (instalación nueva) en el SQL Editor
+
+# 5. Iniciar el servidor de desarrollo
 npm run dev
 ```
 
@@ -164,51 +119,67 @@ La aplicación estará disponible en [http://localhost:3000](http://localhost:30
 
 ## API interna
 
+El front consume esta API para todo el catálogo (`data/vinos.js`) y para el CRUD del panel admin.
+
 ### Productos
 
-| Método | Endpoint | Descripción |
-|---|---|---|
-| `GET` | `/api/productos` | Lista (soporta `?activo=true&destacado=true&varietal=Malbec&limit=3`) |
-| `POST` | `/api/productos` | Crea un nuevo producto |
-| `GET` | `/api/productos/:id` | Obtiene un producto por ID |
-| `PUT` | `/api/productos/:id` | Actualiza un producto |
-| `DELETE` | `/api/productos/:id` | Elimina un producto |
+| Método | Endpoint | Auth | Descripción |
+|---|---|---|---|
+| `GET` | `/api/productos` | pública | Lista productos **activos**. Filtros: `?destacado=true`, `?varietal=Malbec`, `?slug=mi-vino`, `?limit=3` |
+| `GET` | `/api/productos?todos=true` | admin | Incluye también los inactivos (para el panel) |
+| `POST` | `/api/productos` | admin | Crea un producto |
+| `GET` | `/api/productos/:id` | pública | Detalle por ID |
+| `PUT` | `/api/productos/:id` | admin | Actualiza (lista blanca de campos) |
+| `DELETE` | `/api/productos/:id` | admin | Elimina |
 
-### Checkout
-
-| Método | Endpoint | Descripción |
-|---|---|---|
-| `POST` | `/api/checkout` | Crea preferencia de Mercado Pago, devuelve `init_point` |
+Las rutas de escritura devuelven `401` sin sesión de administrador.
 
 ### Webhooks
 
 | Método | Endpoint | Descripción |
 |---|---|---|
-| `POST` | `/api/webhook/mercadopago` | Recibe notificaciones de pago de Mercado Pago |
+| `POST` | `/api/webhook/mercadopago` | Recibe notificaciones de pago; consulta el pago real a la API de MP y actualiza `transacciones` y `pedidos` |
 
 ---
 
 ## Flujo de pago (Mercado Pago Checkout Pro)
 
 ```
-Usuario llena checkout
+Usuario llena checkout (validación client + server)
        ↓
 crearPedido (Server Action)
-  → Crea pedido (estado: pendiente)
-  → Crea transacción (estado: pendiente)
+  → Valida stock y datos de envío
+  → Crea pedido + items + transacción (estado: pendiente)
   → Descuenta stock / limpia carrito
-  → Crea preferencia en MP
        ↓
-Redirige a Mercado Pago
+/pedido/:id → botón «Pagar con Mercado Pago»
        ↓
-Usuario paga
+/pedido/:id/pagar crea la preferencia y redirige a init_point
+  (init_point SIEMPRE: el sandbox_init_point está deprecado
+   y rechaza los pagos de prueba)
        ↓
-MP llama a /api/webhook/mercadopago
-  → Actualiza transacción (aprobado/rechazado)
-  → Actualiza pedido (pagado/cancelado)
+Usuario paga en el checkout de Mercado Pago
        ↓
-MP redirige a /pedido/:id?pago=aprobado|fallido|pendiente
+Doble confirmación del estado real:
+  1. MP llama a /api/webhook/mercadopago → consulta el pago a la API
+     y actualiza transacción + pedido (pagado/cancelado/pendiente)
+  2. Al volver a /pedido/:id se verifica el payment_id contra la API
+     de MP (nunca se confía en la URL) y se marca pagado si corresponde
 ```
+
+### Probar un pago en sandbox
+
+Las credenciales configuradas pertenecen a una **cuenta de prueba** de Mercado Pago, así que `init_point` abre el checkout de test. Pagar con:
+
+| Campo | Valor |
+|---|---|
+| Tarjeta | `5031 7557 3453 0604` (Mastercard) |
+| Vencimiento | `11/30` |
+| CVV | `123` |
+| Titular | `APRO` (aprueba) / `OTHE` (rechaza) |
+| DNI | `12345678` |
+
+Con titular `APRO` el pago queda **aprobado** y el pedido pasa a **Pago aprobado** en `/mi-cuenta` y en el panel `/admin/pedidos`.
 
 ---
 
@@ -239,31 +210,37 @@ NEXT_PUBLIC_SITE_URL
 ```
 vinoteca-web/
 ├── app/
-│   ├── page.js                    # Home (destacados con loading/error)
-│   ├── catalogo/page.js           # Catálogo con filtros por varietal
-│   ├── vino/[id]/page.js          # Detalle de producto
+│   ├── page.js                    # Home (destacados vía API interna)
+│   ├── catalogo/page.js           # Catálogo con filtros (vía API interna)
+│   ├── vino/[id]/page.js          # Detalle de producto (vía API interna)
 │   ├── carrito/page.js            # Carrito
-│   ├── checkout/                  # Checkout + integración MP
-│   ├── pedido/[id]/page.js        # Confirmación + estado MP
-│   ├── admin/page.js              # Panel CRUD de productos
+│   ├── checkout/                  # Checkout + validaciones
+│   ├── pedido/[id]/               # Confirmación + pago (route /pagar)
+│   ├── admin/
+│   │   ├── layout.js              # Verificación server-side de rol admin
+│   │   ├── page.js                # CRUD de productos (vía API interna)
+│   │   └── pedidos/               # Gestión de pedidos y ventas
+│   ├── actions/                   # Server Actions (pedidos, perfil, admin)
 │   ├── auth/                      # Login, registro, recuperación
 │   ├── mi-cuenta/                 # Cuenta del usuario
 │   └── api/
-│       ├── productos/             # REST API de productos
-│       ├── checkout/              # Preferencias Mercado Pago
+│       ├── productos/             # REST API (escrituras solo admin)
 │       └── webhook/mercadopago/   # Webhook de pagos
 ├── components/
-│   ├── Navbar.js
+│   ├── Navbar.js                  # Responsive (hamburguesa < 900px)
 │   ├── Footer.js
 │   ├── CartContext.js             # Estado global del carrito
 │   └── ProductCard.js
 ├── lib/
-│   ├── supabase.js                # Cliente browser (singleton)
+│   ├── auth.js                    # getAdmin(): verificación de rol
+│   ├── validacion.js              # Validadores compartidos cliente/servidor
 │   └── supabase/
-│       ├── client.js              # Cliente browser (factory)
-│       └── server.js              # Cliente server-side
-├── data/
-│   └── vinos.js                   # fetchVinos / fetchDestacados / fetchVino
+│       ├── client.js              # Cliente browser
+│       ├── server.js              # Cliente server-side (cookies)
+│       └── admin.js               # Cliente service-role (solo servidor)
+├── proxy.js                       # Middleware: protege /admin
+├── supabase-schema.sql            # Esquema completo (instalación nueva)
+├── supabase-migration.sql         # Migración (bases existentes)
 └── .github/workflows/ci.yml       # Pipeline CI
 ```
 
