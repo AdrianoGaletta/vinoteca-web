@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { fetchDestacados } from '@/data/vinos'
 import Image from 'next/image'
 
 export default function Home() {
@@ -11,18 +11,10 @@ export default function Home() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    const supabase = createClient()
-    supabase
-      .from('productos')
-      .select('*')
-      .eq('activo', true)
-      .eq('destacado', true)
-      .limit(3)
-      .then(({ data, error }) => {
-        if (error) setError(error.message)
-        else setDestacados(data ?? [])
-        setCargando(false)
-      })
+    fetchDestacados()
+      .then(data => setDestacados(data))
+      .catch(err => setError(err.message))
+      .finally(() => setCargando(false))
   }, [])
 
   return (

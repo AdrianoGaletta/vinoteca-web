@@ -1,9 +1,19 @@
-import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getAdmin } from '@/lib/auth'
 
+// Campos que la API permite modificar (todo lo demás se ignora)
+const CAMPOS_EDITABLES = [
+  'nombre', 'bodega', 'varietal', 'anio', 'descripcion',
+  'precio', 'imagen', 'stock', 'destacado', 'activo', 'slug',
+]
+
+// GET /api/productos/:id — detalle (público; inactivos solo para admin)
 export async function GET(request, { params }) {
-  const supabase = await createClient()
   const { id } = await params
+  const esAdmin = await getAdmin()
+  const supabase = esAdmin ? createAdminClient() : await createClient()
 
   const { data, error } = await supabase
     .from('productos')
@@ -11,26 +21,32 @@ export async function GET(request, { params }) {
     .eq('id', id)
     .single()
 
-  if (error) return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
+  if (error || !data) return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
   return NextResponse.json(data)
 }
 
+// PUT /api/productos/:id — editar producto (solo admin)
 export async function PUT(request, { params }) {
-  const supabase = await createClient()
+  if (!(await getAdmin())) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  }
+
   const { id } = await params
   const body = await request.json()
 
-  const datos = {
-    ...body,
-    precio: body.precio !== undefined ? Number(body.precio) : undefined,
-    stock: body.stock !== undefined ? Number(body.stock) : undefined,
-    anio: body.anio ? Number(body.anio) : null,
+  const datos = {}
+  for (const campo of CAMPOS_EDITABLES) {
+    if (body[campo] !== undefined) datos[campo] = body[campo]
+  }
+  if (datos.precio !== undefined) datos.precio = Number(datos.precio)
+  if (datos.stock !== undefined) datos.stock = Number(datos.stock)
+  if (datos.anio !== undefined) datos.anio = datos.anio ? Number(datos.anio) : null
+
+  if (Object.keys(datos).length === 0) {
+    return NextResponse.json({ error: 'No hay campos para actualizar' }, { status: 400 })
   }
 
-  // Remove undefined values
-  Object.keys(datos).forEach(k => datos[k] === undefined && delete datos[k])
-
-  const { data, error } = await supabase
+  const { data, error } = await createAdminClient()
     .from('productos')
     .update(datos)
     .eq('id', id)
@@ -41,11 +57,15 @@ export async function PUT(request, { params }) {
   return NextResponse.json(data)
 }
 
+// DELETE /api/productos/:id — eliminar producto (solo admin)
 export async function DELETE(request, { params }) {
-  const supabase = await createClient()
+  if (!(await getAdmin())) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  }
+
   const { id } = await params
 
-  const { error } = await supabase
+  const { error } = await createAdminClient()
     .from('productos')
     .delete()
     .eq('id', id)

@@ -2,24 +2,23 @@
 
 import { useActionState, useState } from 'react'
 import { crearPedido } from '@/app/actions/pedidos'
+import { validarNombrePersona, validarDireccion, validarCiudad } from '@/lib/validacion'
 import Image from 'next/image'
 import Link from 'next/link'
 
 function vCheck(campo, valor) {
-  const s = valor?.trim() ?? ''
-  if (campo === 'nombre_receptor') {
-    if (!s) return 'El nombre es requerido'
-    if (s.length < 3) return 'Mínimo 3 caracteres'
+  switch (campo) {
+    case 'nombre_receptor':
+      return validarNombrePersona(valor, { etiqueta: 'El nombre', min: 3 })
+    case 'direccion_entrega':
+      return validarDireccion(valor)
+    case 'ciudad_entrega':
+      return validarCiudad(valor)
+    case 'provincia_entrega':
+      return validarCiudad(valor, { etiqueta: 'La provincia' })
+    default:
+      return ''
   }
-  if (campo === 'direccion_entrega') {
-    if (!s) return 'La dirección es requerida'
-    if (s.length < 5) return 'Ingresá una dirección completa'
-  }
-  if (campo === 'ciudad_entrega') {
-    if (!s) return 'La ciudad es requerida'
-    if (s.length < 2) return 'Mínimo 2 caracteres'
-  }
-  return ''
 }
 
 const inputStyle = {
@@ -51,7 +50,7 @@ export default function CheckoutForm({ items, profile, user, subtotal, costo_env
 
   const nombreCompleto = [profile?.nombre, profile?.apellido].filter(Boolean).join(' ')
 
-  const CAMPOS_REQUERIDOS = ['nombre_receptor', 'direccion_entrega', 'ciudad_entrega']
+  const CAMPOS_REQUERIDOS = ['nombre_receptor', 'direccion_entrega', 'ciudad_entrega', 'provincia_entrega']
 
   function validarCampo(campo, valor) {
     setErrores(prev => ({ ...prev, [campo]: vCheck(campo, valor) }))
@@ -78,7 +77,7 @@ export default function CheckoutForm({ items, profile, user, subtotal, costo_env
       </header>
 
       <form action={action} onSubmit={handleSubmit} noValidate>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 360px', gap: '3rem', alignItems: 'start' }}>
+        <div className="checkout-grid">
 
           {/* FORMULARIO DE ENVÍO */}
           <section>
@@ -139,14 +138,19 @@ export default function CheckoutForm({ items, profile, user, subtotal, costo_env
                   {errores.ciudad_entrega && <p id="ciudad-error" role="alert" style={{ color: '#f44336', fontSize: '0.75rem', marginTop: '0.3rem' }}>{errores.ciudad_entrega}</p>}
                 </div>
                 <div>
-                  <label htmlFor="provincia_entrega" style={labelStyle}>Provincia</label>
+                  <label htmlFor="provincia_entrega" style={labelStyle}>Provincia *</label>
                   <input
                     id="provincia_entrega"
                     name="provincia_entrega"
                     type="text"
                     defaultValue={profile?.provincia ?? ''}
-                    style={inputStyle}
+                    aria-describedby={errores.provincia_entrega ? 'provincia-error' : undefined}
+                    aria-invalid={!!errores.provincia_entrega}
+                    onBlur={e => validarCampo('provincia_entrega', e.target.value)}
+                    onChange={e => errores.provincia_entrega && validarCampo('provincia_entrega', e.target.value)}
+                    style={{ ...inputStyle, borderColor: errores.provincia_entrega ? '#f44336' : '#2e2e2e' }}
                   />
+                  {errores.provincia_entrega && <p id="provincia-error" role="alert" style={{ color: '#f44336', fontSize: '0.75rem', marginTop: '0.3rem' }}>{errores.provincia_entrega}</p>}
                 </div>
               </div>
 

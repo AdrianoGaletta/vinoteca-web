@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import AdminNav from './AdminNav'
 
@@ -28,12 +27,17 @@ export default function Admin() {
   const [confirmId, setConfirmId] = useState(null)
   const [toast, setToast] = useState(null)
 
-  const supabase = createClient()
-
+  // Todo el CRUD del panel pasa por la API interna (/api/productos),
+  // que verifica el rol de admin en cada operación.
   const cargar = useCallback(async () => {
     setCargando(true)
-    const { data } = await supabase.from('productos').select('*').order('nombre')
-    setProductos(data ?? [])
+    try {
+      const res = await fetch('/api/productos?todos=true')
+      const data = await res.json()
+      setProductos(res.ok ? data : [])
+    } catch {
+      setProductos([])
+    }
     setCargando(false)
   }, [])
 
@@ -70,7 +74,7 @@ export default function Admin() {
     e.preventDefault()
     setGuardando(true)
 
-    const { id, ...campos } = modal
+    const { id, created_at, updated_at, ...campos } = modal
     const datos = {
       ...campos,
       precio: Number(campos.precio) || 0,
@@ -78,16 +82,16 @@ export default function Admin() {
       anio: Number(campos.anio) || null,
     }
 
-    let error
-    if (id) {
-      ;({ error } = await supabase.from('productos').update(datos).eq('id', id))
-    } else {
-      ;({ error } = await supabase.from('productos').insert(datos))
-    }
+    const res = await fetch(id ? `/api/productos/${id}` : '/api/productos', {
+      method: id ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(datos),
+    })
 
     setGuardando(false)
-    if (error) {
-      mostrarToast('Error: ' + error.message, 'error')
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      mostrarToast('Error: ' + (body.error ?? res.status), 'error')
     } else {
       mostrarToast(id ? 'Producto actualizado' : 'Producto creado')
       cerrarModal()
@@ -96,15 +100,28 @@ export default function Admin() {
   }
 
   async function eliminar(id) {
-    const { error } = await supabase.from('productos').delete().eq('id', id)
-    if (error) mostrarToast('Error al eliminar: ' + error.message, 'error')
-    else { mostrarToast('Producto eliminado'); cargar() }
+    const res = await fetch(`/api/productos/${id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      mostrarToast('Error al eliminar: ' + (body.error ?? res.status), 'error')
+    } else {
+      mostrarToast('Producto eliminado')
+      cargar()
+    }
     setConfirmId(null)
   }
 
   async function toggle(id, campo, valorActual) {
-    await supabase.from('productos').update({ [campo]: !valorActual }).eq('id', id)
-    setProductos(p => p.map(v => v.id === id ? { ...v, [campo]: !valorActual } : v))
+    const res = await fetch(`/api/productos/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [campo]: !valorActual }),
+    })
+    if (res.ok) {
+      setProductos(p => p.map(v => v.id === id ? { ...v, [campo]: !valorActual } : v))
+    } else {
+      mostrarToast('No se pudo actualizar', 'error')
+    }
   }
 
   // ───────── ESTILOS BASE ─────────

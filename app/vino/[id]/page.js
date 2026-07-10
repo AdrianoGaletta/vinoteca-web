@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { fetchVino } from '@/data/vinos'
 import { useCart } from '@/components/CartContext'
 import Image from 'next/image'
 
@@ -16,16 +16,10 @@ export default function DetalleVino() {
   const [cantidad, setCantidad] = useState(1)
 
   useEffect(() => {
-    const supabase = createClient()
-    supabase
-      .from('productos')
-      .select('*')
-      .eq('slug', id)
-      .single()
-      .then(({ data }) => {
-        setVino(data)
-        setCargando(false)
-      })
+    fetchVino(id)
+      .then(data => setVino(data))
+      .catch(() => setVino(null))
+      .finally(() => setCargando(false))
   }, [id])
 
   if (cargando) {

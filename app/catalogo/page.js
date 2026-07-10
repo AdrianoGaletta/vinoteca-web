@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { fetchVinos } from '@/data/vinos'
 import ProductCard from '@/components/ProductCard'
 
 export default function Catalogo() {
@@ -10,16 +10,10 @@ export default function Catalogo() {
   const [cargando, setCargando] = useState(true)
 
   useEffect(() => {
-    const supabase = createClient()
-    supabase
-      .from('productos')
-      .select('*')
-      .eq('activo', true)
-      .order('nombre')
-      .then(({ data }) => {
-        setVinos(data ?? [])
-        setCargando(false)
-      })
+    fetchVinos()
+      .then(data => setVinos(data))
+      .catch(() => setVinos([]))
+      .finally(() => setCargando(false))
   }, [])
 
   const variatales = ['Todos', ...new Set(vinos.map(v => v.varietal))]
