@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { validarNombrePersona, validarEmail } from '@/lib/validacion'
 
 export default function Contacto() {
   const [form, setForm] = useState({ nombre: '', email: '', mensaje: '' })
@@ -10,15 +11,11 @@ export default function Contacto() {
   function validar() {
     const nuevosErrores = {}
 
-    if (!form.nombre.trim()) {
-      nuevosErrores.nombre = 'El nombre es obligatorio'
-    }
+    const errNombre = validarNombrePersona(form.nombre, { etiqueta: 'El nombre' })
+    if (errNombre) nuevosErrores.nombre = errNombre
 
-    if (!form.email.trim()) {
-      nuevosErrores.email = 'El email es obligatorio'
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      nuevosErrores.email = 'El email no es válido'
-    }
+    const errEmail = validarEmail(form.email)
+    if (errEmail) nuevosErrores.email = errEmail
 
     if (!form.mensaje.trim()) {
       nuevosErrores.mensaje = 'El mensaje es obligatorio'
