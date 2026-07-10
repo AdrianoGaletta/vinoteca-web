@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import AdminNav from './AdminNav'
 
 const VACIO = {
   nombre: '', bodega: '', varietal: '', anio: '',
@@ -357,6 +358,8 @@ export default function Admin() {
             </button>
           </div>
         </header>
+
+        <AdminNav activa="productos" />
 
         {/* TABLA */}
         {cargando ? (

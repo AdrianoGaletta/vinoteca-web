@@ -88,6 +88,24 @@ create policy "Productos activos visibles para todos"
   on public.productos for select
   using (activo = true);
 
+-- Función helper de rol: ¿el JWT actual pertenece a un admin?
+-- El rol vive en app_metadata (solo modificable desde el servidor de Auth).
+create or replace function public.es_admin()
+returns boolean
+language sql
+stable
+as $$
+  select coalesce((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin', false)
+$$;
+
+-- Solo un admin puede crear, editar o borrar productos (y ver inactivos)
+drop policy if exists "Admins gestionan productos" on public.productos;
+
+create policy "Admins gestionan productos"
+  on public.productos for all
+  using (public.es_admin())
+  with check (public.es_admin());
+
 -- ============================================================
 -- 3. CARRITO (persistente por usuario)
 -- ============================================================
@@ -141,7 +159,7 @@ create table if not exists public.pedidos (
   id                uuid primary key default gen_random_uuid(),
   usuario_id        uuid not null references auth.users(id) on delete restrict,
   estado            text not null default 'pendiente'
-    check (estado in ('pendiente', 'confirmado', 'en_preparacion', 'enviado', 'entregado', 'cancelado')),
+    check (estado in ('pendiente', 'pagado', 'confirmado', 'en_preparacion', 'enviado', 'entregado', 'cancelado')),
   subtotal          numeric(10, 2) not null,
   descuento         numeric(10, 2) default 0,
   costo_envio       numeric(10, 2) default 0,
@@ -159,6 +177,8 @@ alter table public.pedidos enable row level security;
 
 drop policy if exists "Usuarios ven sus propios pedidos" on public.pedidos;
 drop policy if exists "Usuarios crean sus propios pedidos" on public.pedidos;
+drop policy if exists "Admins ven todos los pedidos" on public.pedidos;
+drop policy if exists "Admins actualizan pedidos" on public.pedidos;
 
 create policy "Usuarios ven sus propios pedidos"
   on public.pedidos for select
@@ -167,6 +187,14 @@ create policy "Usuarios ven sus propios pedidos"
 create policy "Usuarios crean sus propios pedidos"
   on public.pedidos for insert
   with check (auth.uid() = usuario_id);
+
+create policy "Admins ven todos los pedidos"
+  on public.pedidos for select
+  using (public.es_admin());
+
+create policy "Admins actualizan pedidos"
+  on public.pedidos for update
+  using (public.es_admin());
 
 -- ============================================================
 -- 6. ITEMS DEL PEDIDO
@@ -187,6 +215,11 @@ alter table public.pedido_items enable row level security;
 
 drop policy if exists "Usuarios ven items de sus pedidos" on public.pedido_items;
 drop policy if exists "Usuarios crean items de sus pedidos" on public.pedido_items;
+drop policy if exists "Admins ven items de pedidos" on public.pedido_items;
+
+create policy "Admins ven items de pedidos"
+  on public.pedido_items for select
+  using (public.es_admin());
 
 create policy "Usuarios ven items de sus pedidos"
   on public.pedido_items for select
@@ -224,6 +257,8 @@ create table if not exists public.transacciones (
 alter table public.transacciones enable row level security;
 
 drop policy if exists "Usuarios ven sus propias transacciones" on public.transacciones;
+drop policy if exists "Usuarios crean transacciones de sus pedidos" on public.transacciones;
+drop policy if exists "Admins ven todas las transacciones" on public.transacciones;
 
 create policy "Usuarios ven sus propias transacciones"
   on public.transacciones for select
@@ -232,6 +267,18 @@ create policy "Usuarios ven sus propias transacciones"
       select id from public.pedidos where usuario_id = auth.uid()
     )
   );
+
+create policy "Usuarios crean transacciones de sus pedidos"
+  on public.transacciones for insert
+  with check (
+    pedido_id in (
+      select id from public.pedidos where usuario_id = auth.uid()
+    )
+  );
+
+create policy "Admins ven todas las transacciones"
+  on public.transacciones for select
+  using (public.es_admin());
 
 -- ============================================================
 -- 8. FUNCIÓN updated_at automático
