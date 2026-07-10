@@ -4,23 +4,20 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { validarNombrePersona, validarEmail, validarPassword } from '@/lib/validacion'
 
 // ── Validadores ──────────────────────────────────────────
 function v(campo, valor) {
   switch (campo) {
     case 'nombre':
-      if (!valor?.trim()) return 'El nombre es requerido'
-      if (valor.trim().length < 2) return 'Mínimo 2 caracteres'
-      return ''
+      return validarNombrePersona(valor, { etiqueta: 'El nombre' })
+    case 'apellido':
+      // Opcional, pero si se completa tiene que ser un apellido real
+      return validarNombrePersona(valor, { etiqueta: 'El apellido', requerido: false })
     case 'email':
-      if (!valor?.trim()) return 'El email es requerido'
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor.trim())) return 'Email inválido'
-      return ''
+      return validarEmail(valor)
     case 'password':
-      if (!valor) return 'La contraseña es requerida'
-      if (valor.length < 6) return 'Mínimo 6 caracteres'
-      if (!/[A-Za-z]/.test(valor) || !/[0-9]/.test(valor)) return 'Debe contener letras y números'
-      return ''
+      return validarPassword(valor)
     default:
       return ''
   }
@@ -76,7 +73,7 @@ export default function RegistroPage() {
     const email = fd.get('email')
     const password = fd.get('password')
 
-    const nuevoErrores = Object.fromEntries(['nombre', 'email', 'password'].map(c => [c, v(c, fd.get(c))]))
+    const nuevoErrores = Object.fromEntries(['nombre', 'apellido', 'email', 'password'].map(c => [c, v(c, fd.get(c))]))
     setErrores(nuevoErrores)
     if (Object.values(nuevoErrores).some(Boolean)) return
 
@@ -153,7 +150,15 @@ export default function RegistroPage() {
               </div>
               <div>
                 <label htmlFor="apellido" style={labelStyle}>Apellido</label>
-                <input id="apellido" name="apellido" type="text" autoComplete="family-name" style={inputStyle(false)} />
+                <input
+                  id="apellido" name="apellido" type="text" autoComplete="family-name"
+                  aria-describedby={errores.apellido ? 'apellido-error' : undefined}
+                  aria-invalid={!!errores.apellido}
+                  onBlur={e => validarCampo('apellido', e.target.value)}
+                  onChange={e => errores.apellido && validarCampo('apellido', e.target.value)}
+                  style={inputStyle(errores.apellido)}
+                />
+                <FieldError id="apellido-error" msg={errores.apellido} />
               </div>
             </div>
 

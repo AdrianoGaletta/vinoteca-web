@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { validarNombrePersona, validarDireccion, validarCiudad } from '@/lib/validacion'
 
 export async function crearPedido(prevState, formData) {
   const supabase = await createClient()
@@ -16,8 +17,14 @@ export async function crearPedido(prevState, formData) {
   const provincia_entrega  = formData.get('provincia_entrega')?.trim()
   const notas              = formData.get('notas')?.trim()
 
-  if (!nombre_receptor || !direccion_entrega || !ciudad_entrega) {
-    return { error: 'Completá los campos obligatorios: nombre, dirección y ciudad.' }
+  // Validación de contenido en el servidor (la del cliente se puede saltear)
+  const errorValidacion =
+    validarNombrePersona(nombre_receptor, { etiqueta: 'El nombre del receptor', min: 3 }) ||
+    validarDireccion(direccion_entrega) ||
+    validarCiudad(ciudad_entrega) ||
+    validarCiudad(provincia_entrega, { etiqueta: 'La provincia' })
+  if (errorValidacion) {
+    return { error: `Revisá los datos de envío: ${errorValidacion.toLowerCase()}` }
   }
 
   // Obtener carrito activo
