@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function crearPedido(prevState, formData) {
   const supabase = await createClient()
@@ -95,20 +96,26 @@ export async function crearPedido(prevState, formData) {
     return { error: 'Error al guardar los productos del pedido.' }
   }
 
-  // Crear transacción con estado pendiente
-  await supabase.from('transacciones').insert({
-    pedido_id: pedido.id,
-    estado:    'pendiente',
-    monto:     total,
-    moneda:    'ARS',
+  // La transacción y el stock se tocan con permisos de servidor:
+  // RLS no permite que un cliente modifique productos ni transacciones.
+  const admin = createAdminClient()
+
+  const { error: errTransaccion } = await admin.from('transacciones').insert({
+    pedido_id:   pedido.id,
+    estado:      'pendiente',
+    metodo_pago: 'mercadopago',
+    monto:       total,
+    moneda:      'ARS',
   })
+  if (errTransaccion) console.error('Error creando transacción:', errTransaccion.message)
 
   // Descontar stock
   for (const item of items) {
-    await supabase
+    const { error: errStock } = await admin
       .from('productos')
       .update({ stock: item.productos.stock - item.cantidad })
       .eq('id', item.productos.id)
+    if (errStock) console.error('Error descontando stock:', errStock.message)
   }
 
   // Marcar carrito como convertido y vaciar items

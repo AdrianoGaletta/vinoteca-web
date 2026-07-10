@@ -26,7 +26,29 @@ export async function proxy(request) {
   )
 
   // Refresca la sesión del usuario — no elimines esta línea
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // El panel /admin exige sesión iniciada con rol de administrador.
+  // Sin sesión → login (con retorno); sin rol admin → inicio.
+  const { pathname } = request.nextUrl
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    const url = request.nextUrl.clone()
+    if (!user) {
+      url.pathname = '/auth/login'
+      url.search = `redirect=${encodeURIComponent(pathname)}`
+    } else if (user.app_metadata?.role !== 'admin') {
+      url.pathname = '/'
+      url.search = ''
+    } else {
+      return supabaseResponse
+    }
+    // Conservar las cookies de sesión refrescadas también al redirigir
+    const redirectResponse = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach(cookie =>
+      redirectResponse.cookies.set(cookie)
+    )
+    return redirectResponse
+  }
 
   return supabaseResponse
 }
