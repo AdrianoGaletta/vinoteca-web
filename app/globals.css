@@ -443,6 +443,26 @@ body > div[hidden] {
 }
 
 /* ══════════════════════════════════════
+   HERO — estadísticas (responsive)
+══════════════════════════════════════ */
+
+.hero-stat {
+  padding: 1.5rem 2rem;
+}
+
+.hero-stat-num {
+  font-family: var(--font-editorial);
+  font-size: 1.6rem;
+  color: var(--dorado);
+  font-weight: 300;
+}
+
+@media (max-width: 520px) {
+  .hero-stat { padding: 1rem 0.6rem; }
+  .hero-stat-num { font-size: 1.15rem; }
+}
+
+/* ══════════════════════════════════════
    CHECKOUT (responsive con breakpoints)
 ══════════════════════════════════════ */
 

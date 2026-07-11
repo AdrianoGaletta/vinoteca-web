@@ -7,6 +7,8 @@ export default function Contacto() {
   const [form, setForm] = useState({ nombre: '', email: '', mensaje: '' })
   const [errores, setErrores] = useState({})
   const [enviado, setEnviado] = useState(false)
+  const [pending, setPending] = useState(false)
+  const [errorGeneral, setErrorGeneral] = useState('')
 
   function validar() {
     const nuevosErrores = {}
@@ -32,8 +34,9 @@ export default function Contacto() {
     setErrores(prev => ({ ...prev, [name]: '' }))
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
+    setErrorGeneral('')
     const erroresEncontrados = validar()
 
     if (Object.keys(erroresEncontrados).length > 0) {
@@ -41,8 +44,27 @@ export default function Contacto() {
       return
     }
 
-    setEnviado(true)
-    setForm({ nombre: '', email: '', mensaje: '' })
+    // El mensaje se envía a la API interna, que vuelve a validar el
+    // contenido en el servidor antes de aceptarlo.
+    setPending(true)
+    try {
+      const res = await fetch('/api/contacto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        setErrorGeneral(body.error ?? 'No pudimos enviar el mensaje. Intentá de nuevo.')
+        return
+      }
+      setEnviado(true)
+      setForm({ nombre: '', email: '', mensaje: '' })
+    } catch {
+      setErrorGeneral('No pudimos enviar el mensaje. Revisá tu conexión e intentá de nuevo.')
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
@@ -236,10 +258,25 @@ export default function Contacto() {
             )}
           </div>
 
+          {errorGeneral && (
+            <p role="alert" style={{
+              color: '#e74c3c',
+              fontSize: '0.85rem',
+              margin: 0,
+              padding: '0.75rem 1rem',
+              background: '#1a0a0a',
+              border: '1px solid rgba(231,76,60,0.3)',
+            }}>
+              {errorGeneral}
+            </p>
+          )}
+
           <button
             type="submit"
+            disabled={pending}
+            aria-busy={pending}
             style={{
-              backgroundColor: 'var(--dorado)',
+              backgroundColor: pending ? '#555' : 'var(--dorado)',
               color: 'var(--negro)',
               border: 'none',
               padding: '1rem 2rem',
@@ -247,11 +284,11 @@ export default function Contacto() {
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
               fontWeight: '600',
-              cursor: 'pointer',
+              cursor: pending ? 'not-allowed' : 'pointer',
               fontFamily: 'var(--font-body)',
             }}
           >
-            Enviar mensaje
+            {pending ? 'Enviando...' : 'Enviar mensaje'}
           </button>
         </form>
       )}

@@ -134,6 +134,12 @@ El front consume esta API para todo el catálogo (`data/vinos.js`) y para el CRU
 
 Las rutas de escritura devuelven `401` sin sesión de administrador.
 
+### Contacto
+
+| Método | Endpoint | Auth | Descripción |
+|---|---|---|---|
+| `POST` | `/api/contacto` | pública | Recibe el mensaje del formulario de contacto; revalida el contenido en el servidor (`400` si no pasa) |
+
 ### Webhooks
 
 | Método | Endpoint | Descripción |
@@ -169,17 +175,24 @@ Doble confirmación del estado real:
 
 ### Probar un pago en sandbox
 
-Las credenciales configuradas pertenecen a una **cuenta de prueba** de Mercado Pago, así que `init_point` abre el checkout de test. Pagar con:
+Las credenciales configuradas pertenecen a una **cuenta de prueba** de Mercado Pago, así que `init_point` abre el checkout de test.
+
+> ⚠️ **Importante: pagar como invitado, sin iniciar sesión en Mercado Pago.**
+> Si en el checkout aparece un nombre arriba a la derecha (sesión real de MP), cerrala primero:
+> Mercado Pago **deshabilita el botón «Pagar»** cuando la cuenta que paga es la misma que cobra
+> o cuando se mezcla una cuenta real con el entorno de prueba.
+
+Datos de la tarjeta de test:
 
 | Campo | Valor |
 |---|---|
 | Tarjeta | `5031 7557 3453 0604` (Mastercard) |
 | Vencimiento | `11/30` |
 | CVV | `123` |
-| Titular | `APRO` (aprueba) / `OTHE` (rechaza) |
+| Titular | `APRO` (aprueba) / `CONT` (queda pendiente) / `OTHE` (rechaza) |
 | DNI | `12345678` |
 
-Con titular `APRO` el pago queda **aprobado** y el pedido pasa a **Pago aprobado** en `/mi-cuenta` y en el panel `/admin/pedidos`.
+Los tres titulares permiten probar los tres caminos del webhook: aprobado → pedido **pagado**, pendiente → **pendiente**, rechazado → **cancelado**. Con `APRO` el pedido pasa a **Pago aprobado** en `/mi-cuenta` y en el panel `/admin/pedidos`.
 
 ---
 
@@ -225,6 +238,7 @@ vinoteca-web/
 │   ├── mi-cuenta/                 # Cuenta del usuario
 │   └── api/
 │       ├── productos/             # REST API (escrituras solo admin)
+│       ├── contacto/              # Mensajes del formulario de contacto
 │       └── webhook/mercadopago/   # Webhook de pagos
 ├── components/
 │   ├── Navbar.js                  # Responsive (hamburguesa < 900px)
