@@ -21,7 +21,7 @@ export async function GET(request, { params }) {
 
   const { data: pedido } = await supabase
     .from('pedidos')
-    .select('id, estado, pedido_items (producto_id, nombre_producto, cantidad, precio_unitario)')
+    .select('id, estado, costo_envio, pedido_items (producto_id, nombre_producto, cantidad, precio_unitario)')
     .eq('id', id)
     .eq('usuario_id', user.id)
     .single()
@@ -51,6 +51,14 @@ export async function GET(request, { params }) {
           unit_price: Number(it.precio_unitario),
           currency_id: 'ARS',
         })),
+        // El envío va como shipments.cost para que MP cobre el total del
+        // pedido (subtotal + envío) y no solo los ítems.
+        ...(Number(pedido.costo_envio) > 0 && {
+          shipments: {
+            cost: Number(pedido.costo_envio),
+            mode: 'not_specified',
+          },
+        }),
         back_urls: {
           success: `${base}/pedido/${id}`,
           failure: `${base}/pedido/${id}`,
