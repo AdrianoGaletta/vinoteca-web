@@ -132,6 +132,11 @@ export default async function PedidoPage({ params, searchParams }) {
           <p style={{ color: 'var(--crema-apagada)', fontSize: '0.7rem', marginTop: '0.75rem', opacity: 0.6 }}>
             Entorno de prueba — tarjeta de test: <span style={{ fontFamily: 'monospace', color: 'var(--crema)' }}>5031 7557 3453 0604</span>, 11/30, CVV 123, titular <span style={{ color: 'var(--crema)' }}>APRO</span>, DNI 12345678
           </p>
+          <p style={{ color: 'var(--dorado)', fontSize: '0.7rem', marginTop: '0.5rem', opacity: 0.85, lineHeight: 1.6 }}>
+            Importante: pagá <strong>como invitado</strong>, sin iniciar sesión en Mercado Pago.
+            Si aparece tu nombre arriba a la derecha del checkout, cerrá esa sesión primero
+            (Mercado Pago deshabilita el pago si la cuenta que paga es la misma que cobra).
+          </p>
         </div>
       )}
 

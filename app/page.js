@@ -150,11 +150,10 @@ export default function Home() {
             { num: '15+', label: 'Bodegas' },
             { num: '100%', label: 'Origen Argentina' },
           ].map(({ num, label }, i) => (
-            <div key={label} style={{
-              padding: '1.5rem 2rem',
+            <div key={label} className="hero-stat" style={{
               borderRight: i < 2 ? '1px solid rgba(201,168,76,0.15)' : 'none',
             }}>
-              <p style={{ fontFamily: 'var(--font-editorial)', fontSize: '1.6rem', color: 'var(--dorado)', fontWeight: 300 }}>{num}</p>
+              <p className="hero-stat-num">{num}</p>
               <p style={{ color: 'var(--crema-apagada)', fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '0.2rem' }}>{label}</p>
             </div>
           ))}
